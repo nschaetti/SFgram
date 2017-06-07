@@ -4,6 +4,9 @@ from .SFGCleaner import SFGCleaner
 
 # Microsoft LIT cleaner
 class SFGLitCleaner(SFGCleaner):
+    """
+    Microsoft LIT cleaner
+    """
 
     # Constructor
     def __init__(self):

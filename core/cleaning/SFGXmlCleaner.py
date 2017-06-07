@@ -4,6 +4,9 @@ from .SFGCleaner import SFGCleaner
 
 # XML cleaner
 class SFGXmlCleaner(SFGCleaner):
+    """
+    XML File Cleaner
+    """
 
     # Constructor
     def __init__(self):

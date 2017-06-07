@@ -4,6 +4,9 @@ from .SFGCleaner import SFGCleaner
 
 # RTF cleaner
 class SFGRTFCleaner(SFGCleaner):
+    """
+    RTF cleaner
+    """
 
     # Constructor
     def __init__(self):
