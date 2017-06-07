@@ -40,14 +40,20 @@ if __name__ == "__main__":
         if os.path.isdir(sf_file):
             cleaner = cl.SFGDirectoryCleaner()
         else:
-            if os.path.splitext(sf_file) == "pdf":
+            if os.path.splitext(sf_file)[1] == ".pdf":
                 cleaner = cl.SFGPdfCleaner()
-            elif os.path.splitext(sf_file) == "rtf":
+            elif os.path.splitext(sf_file)[1] == ".rtf":
                 cleaner = cl.SFGRTFCleaner()
-            elif os.path.splitext(sf_file) == "html":
+            elif os.path.splitext(sf_file)[1] == ".html" or os.path.splitext(sf_file)[1] == ".htm":
                 cleaner = cl.SFGHTMLCleaner()
-            elif os.path.splitext(sf_file) == "txt":
+            elif os.path.splitext(sf_file)[1] == ".txt":
                 cleaner = cl.SFGFileCleaner()
+            elif os.path.splitext(sf_file)[1] == ".lit":
+                cleaner = cl.SFGLitCleaner()
+            elif os.path.splitext(sf_file)[1] == ".tei":
+                cleaner = cl.SFGXmlCleaner()
+            else:
+                print("WARNING : " + sf_file)
             # end if
         # end if
 
