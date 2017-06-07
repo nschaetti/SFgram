@@ -3,14 +3,14 @@ from .SFGCleaner import SFGCleaner
 
 
 # XML cleaner
-class SFGLitCleaner(SFGCleaner):
+class SFGXmlCleaner(SFGCleaner):
 
     # Constructor
     def __init__(self):
         """
         Constructor
         """
-        super(SFGLitCleaner, self).__init__()
+        super(SFGXmlCleaner, self).__init__()
     # end __init__
 
     # Clean text
