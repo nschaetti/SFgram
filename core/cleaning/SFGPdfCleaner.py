@@ -2,10 +2,10 @@
 from .SFGCleaner import SFGCleaner
 
 
-# HTML file cleaner
-class SFGHTMLCleaner(SFGCleaner):
+# PDF cleaner
+class SFGPdfCleaner(SFGCleaner):
     """
-    HTML file cleaner
+    PDF cleaner
     """
 
     # Constructor
@@ -13,7 +13,7 @@ class SFGHTMLCleaner(SFGCleaner):
         """
         Constructor
         """
-        super(SFGHTMLCleaner, self).__init__()
+        super(SFGPdfCleaner, self).__init__()
     # end __init__
 
     # Clean text
@@ -23,7 +23,7 @@ class SFGHTMLCleaner(SFGCleaner):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
-        print("HTML " + text)
+        print("PDF " + text)
     # end __call__
 
-# end SFGHTMLCleaner
+# end SFGPdfCleaner

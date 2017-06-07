@@ -1,10 +1,12 @@
 
 import re
+from .SFGCleaner import SFGCleaner
+
 
 # Clean file from project Gutenberg
-class SFGFileCleaner(object):
+class SFGFileCleaner(SFGCleaner):
     """
-    Clean file from projec  t Gutenberg.
+    Clean file from project Gutenberg.
     """
 
     # Constructor
@@ -19,10 +21,11 @@ class SFGFileCleaner(object):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
+        print("TEXT " + text)
         # Split lines
-        for line in text.split('\n'):
+        """for line in text.split('\n'):
             m = re.search("$Title : (\w+)")
-            print(m.group(0))
+            print(m.group(0))"""
         # end for
     # end __call__
 

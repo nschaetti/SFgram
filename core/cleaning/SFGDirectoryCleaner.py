@@ -2,10 +2,10 @@
 from .SFGCleaner import SFGCleaner
 
 
-# HTML file cleaner
-class SFGHTMLCleaner(SFGCleaner):
+# Directory cleaner
+class SFGDirectoryCleaner(SFGCleaner):
     """
-    HTML file cleaner
+    Directory cleaner
     """
 
     # Constructor
@@ -13,7 +13,7 @@ class SFGHTMLCleaner(SFGCleaner):
         """
         Constructor
         """
-        super(SFGHTMLCleaner, self).__init__()
+        pass
     # end __init__
 
     # Clean text
@@ -23,7 +23,12 @@ class SFGHTMLCleaner(SFGCleaner):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
-        print("HTML " + text)
+        print("DIR " + text)
+        # Split lines
+        """for line in text.split('\n'):
+            m = re.search("$Title : (\w+)")
+            print(m.group(0))"""
+        # end for
     # end __call__
 
-# end SFGHTMLCleaner
+# end SFGDirectoryCleaner
