@@ -22,7 +22,7 @@ class SFGTextCleaner(SFGCleaner):
         """
         Clean text.
         :param text: Text to clean.
-        :return: Dictionary with text and informations.
+        :return: Dictionary with text and information.
         """
         print("TEXT " + text)
         # Split lines
