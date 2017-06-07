@@ -23,7 +23,7 @@ class SFGRTFCleaner(SFGCleaner):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
-        print("RTF " + text)
-        # end __call__
+        pass
+    # end __call__
 
 # end SFGRTFCleaner

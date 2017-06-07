@@ -23,7 +23,7 @@ class SFGHTMLCleaner(SFGCleaner):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
-        print("HTML " + text)
+        pass
     # end __call__
 
 # end SFGHTMLCleaner

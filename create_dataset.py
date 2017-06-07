@@ -20,7 +20,11 @@ def compute_directory(c_file):
     """
     # Type
     if c_file[-1:] == "h":
-        return os.path.join(c_file, os.path.basename(c_file) + ".htm")
+        if os.path.exists(os.path.join(c_file, os.path.basename(c_file) + ".htm")):
+            return os.path.join(c_file, os.path.basename(c_file) + ".htm")
+        else:
+            return os.path.join(c_file, os.path.basename(c_file) + ".html")
+        # end if
     elif c_file[-3:] == "tei":
         return os.path.join(c_file, os.path.basename(c_file) + ".tei")
     return None
@@ -71,7 +75,7 @@ if __name__ == "__main__":
             elif os.path.splitext(sf_file)[1] == ".html" or os.path.splitext(sf_file)[1] == ".htm":
                 cleaner = cl.SFGHTMLCleaner()
             elif os.path.splitext(sf_file)[1] == ".txt":
-                cleaner = cl.SFGFileCleaner()
+                cleaner = cl.SFGTextCleaner()
             elif os.path.splitext(sf_file)[1] == ".lit":
                 cleaner = cl.SFGLitCleaner()
             elif os.path.splitext(sf_file)[1] == ".tei":
@@ -81,7 +85,8 @@ if __name__ == "__main__":
             # end if
 
             # Get cleaned text and info
-            text = cleaner(sf_file)
+            print("Importing %s" % sf_file)
+            text = cleaner(open(sf_file, 'r').read())
 
             # Statistics
             count += 1

@@ -23,7 +23,7 @@ class SFGPdfCleaner(SFGCleaner):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
-        print("PDF " + text)
+        pass
     # end __call__
 
 # end SFGPdfCleaner

@@ -23,7 +23,7 @@ class SFGXmlCleaner(SFGCleaner):
         :param text: Text to clean.
         :return: Dictionary with text and informations.
         """
-        print("XML " + text)
+        pass
         # end __call__
 
 # end SFGRTFCleaner

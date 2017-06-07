@@ -1,7 +1,6 @@
 
 from SFGCleaner import SFGCleaner
-from SFGDirectoryCleaner import SFGDirectoryCleaner
-from SFGFileCleaner import SFGFileCleaner
+from SFGTextCleaner import SFGTextCleaner
 from SFGHTMLCleaner import SFGHTMLCleaner
 from SFGLitCleaner import SFGLitCleaner
 from SFGPdfCleaner import SFGPdfCleaner
