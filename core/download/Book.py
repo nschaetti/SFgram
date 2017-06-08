@@ -29,6 +29,15 @@ class Book(object):
         self._load_gutenberg_informations()
     # end __init__
 
+    # Get book's title
+    def get_title(self):
+        """
+        Get book's title
+        :return:
+        """
+        return self._title
+    # end get_title
+
     # Load Gutenberg informations
     def _load_gutenberg_informations(self):
         # Load HTML
