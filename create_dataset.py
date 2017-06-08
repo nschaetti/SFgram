@@ -3,6 +3,7 @@ import argparse
 import os
 import re
 import core.cleaning as cl
+import core.download as dw
 
 ######################################################
 #
@@ -53,8 +54,21 @@ if __name__ == "__main__":
     count = 0
     token_count = 0
 
+    # Open category
+    downloader = dw.GutenbergBookshelf()
+    downloader.open(68)
+
+    # For each book
+    for index, book in enumerate(downloader):
+        print(index)
+        print(book)
+        if index > 100:
+            break
+        # end if
+    # end for
+
     # For each file
-    for filename in os.listdir(gutenberg_sf_path):
+    """for filename in os.listdir(gutenberg_sf_path):
         # File
         sf_file = os.path.join(gutenberg_sf_path, filename)
 
@@ -91,7 +105,7 @@ if __name__ == "__main__":
             # Statistics
             count += 1
         # end if
-    # end for
+    # end for"""
 
     # Print information
     print("Imported: %d novels, %d tokens" % (count, token_count))
