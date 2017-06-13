@@ -4,6 +4,7 @@ from urllib2 import urlopen
 import bs4 as BeautifulSoup
 from .Book import Book
 
+
 # Class to list a Gutenberg category
 class GutenbergBookshelf(object):
 

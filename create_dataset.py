@@ -55,17 +55,18 @@ if __name__ == "__main__":
     token_count = 0
 
     # Open category
-    downloader = dw.GutenbergBookshelf()
-    downloader.open(68)
+    gutenberg_con = dw.GutenbergBookshelf()
+    gutenberg_con.open(68)
 
     # GoodReads connector
     goodreads_con = dw.GoodReadsConnector()
 
     # For each book
-    for index, book in enumerate(downloader):
-        print(index)
+    for index, book in enumerate(gutenberg_con):
+        #print(index)
         print(book)
-        print(goodreads_con.get_book_information(goodreads_con.search_book(book.get_title())))
+        print("")
+        #print(goodreads_con.get_book_information(goodreads_con.search_book(book.get_title())))
         if index > 100:
             break
         # end if
