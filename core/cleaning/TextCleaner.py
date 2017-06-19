@@ -48,7 +48,7 @@ class TextCleaner(SFGCleaner):
                     save = True
                 # end if
             # end for
-            return result.join('\n')
+            return '\n'.join(result)
         else:
             return text
         # end if
