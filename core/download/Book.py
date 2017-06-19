@@ -116,7 +116,7 @@ class Book(object):
         logging.getLogger(name="SFGram").debug(u"Saving JSON file to %s" % os.path.join(target_directory, u"info.json"))
         with open(os.path.join(target_directory, u"info.json"), 'w') as f:
             json.dump(self._attrs, f, sort_keys=True, indent=4)
-            # end with
+        # end with
 
         # Create directory and download images
         image_directory = os.path.join(target_directory, u"images")
@@ -128,6 +128,18 @@ class Book(object):
         self.download_images(image_directory)
     # end save
 
+    # Book downloaded
+    def downloaded(self, dataset_directory):
+        """
+        Is book downloaded?
+        :param dataset_path: Dataset path
+        :return: True or False
+        """
+        # Book directory
+        target_directory = os.path.join(dataset_directory, u"books", unicode(self._num), u"content.txt")
+        return os.path.exists(target_directory)
+    # end downloaded
+
     # Download the file
     def download(self, content_file):
         """
@@ -138,7 +150,7 @@ class Book(object):
         # Load URL
         try:
             # Open URL
-            text = urlopen(self._plaintext_url.format(self._num)).read().decode("utf-8")
+            text = urlopen(self._plaintext_url.format(self._num)).read().decode("utf-8", errors='ignore')
 
             #  Clean text
             cleaner = TextCleaner()
@@ -307,6 +319,11 @@ class Book(object):
                                                          .format(self._attrs['Original Title']))
                 time.sleep(10)
                 pass
+            except TypeError:
+                logging.getLogger(name="SFGram").warning("Book \"{}\" not found on GoodReads"
+                                                         .format(self._attrs['Original Title']))
+                self._attrs['GoodReads Not Found'] = True
+                return
             # end try
         # end while
         time.sleep(10)
@@ -327,10 +344,16 @@ class Book(object):
         self._attrs['Small Image'] = book.small_image_url
         self._attrs['GoodReads URL'] = book.link
         self._attrs['Description'] = book.description
-        self._attrs['Average Rating'] = float(book.average_rating)
+        if book.average_rating is not None:
+            self._attrs['Average Rating'] = float(book.average_rating)
+        # end if
         self._attrs['Language Code'] = book.language_code
-        self._attrs['Rating Count'] = int(book.ratings_count)
-        self._attrs['Pages'] = int(book.num_pages)
+        if book.rating_dist is not None:
+            self._attrs['Rating Count'] = int(book.ratings_count)
+        # end if
+        if book.num_pages is not None:
+            self._attrs['Pages'] = int(book.num_pages)
+        # end if
         self._attrs['Format'] = book.format
 
         # Similar books
@@ -350,33 +373,6 @@ class Book(object):
         except TypeError:
             self._attrs['Similar Books'] = list()
         # end try
-
-        # GoodReads connector
-        """goodreads_con = GoodReadsConnector()
-
-        # Get information
-        gr_info = goodreads_con.get_book_information(goodreads_con.search_book(self._attrs["Title"]
-                                                                               + u" " + self._attrs["Authors"][0]))
-
-        # Fields
-        for genre in gr_info['Genres']:
-            if genre not in self._attrs['Genres']:
-                self._attrs['Genres'].append(genre)
-            # end if
-        # end for
-        if "ISBN" in gr_info:
-            try:
-                self._attrs['ISBN'] = re.search(r"(\d{13})", gr_info['ISBN']).groups()[0]
-            except AttributeError:
-                self._attrs['ISBN'] = re.search(r"(\d{10})", gr_info['ISBN']).groups()[0]
-            # end try
-        # end if
-        if "ASIN" in gr_info:
-            self._attrs['ASIN'] = re.search(r"([A-Z0-9]{10})", gr_info['ASIN']).groups()[0]
-        self._attrs['GoodReads URL'] = gr_info['url']
-        if "Cover" in gr_info:
-            self._attrs['Cover'] = gr_info['Cover']
-        # end if"""
     # end _load_goodreads_information
 
     # Add field
@@ -415,21 +411,21 @@ class Book(object):
         :param wiki_info:
         :return:
         """
-        print(wiki_info)
-        print(self._attrs['Title'])
-        # Publication date
-        if "Publication date" in wiki_info:
-            print(wiki_info['Publication date'])
-            year = re.search(r"([12][0-9]{3})", wiki_info['Publication date']).groups()[0]
-            self._attrs['Publication date'] = int(year)
+        try:
+            # Publication date
+            if "Publication date" in wiki_info:
+                year = re.search(r"([12][0-9]{3})", wiki_info['Publication date']).groups()[0]
+                self._attrs['Publication date'] = int(year)
+                # end if
+            elif "Published" in wiki_info:
+                year = re.search(r"([12][0-9]{3})", wiki_info['Published']).groups()[0]
+                self._attrs['Publication date'] = int(year)
+            else:
+                self._attrs['Publication date'] = -1
             # end if
-        elif "Published" in wiki_info:
-            print(wiki_info['Published'])
-            year = re.search(r"([12][0-9]{3})", wiki_info['Published']).groups()[0]
-            self._attrs['Publication date'] = int(year)
-        else:
+        except AttributeError:
             self._attrs['Publication date'] = -1
-        # end if
+        # end try
     # end _extract_publication_date
 
     # Load information from wikipedia

@@ -47,9 +47,11 @@ if __name__ == "__main__":
 
     # For each book
     for index, book in enumerate(gutenberg_con):
-        logger.info("Saving book %d, %s by %s, %d" % (book.get_num(), book.get_title(), book.get_author()[0],
+        if not book.downloaded(args.output):
+            logger.info("Saving book %d, %s by %s, %d" % (book.get_num(), book.get_title(), book.get_author()[0],
                                                       book.get_attr("Publication date")))
-        book.save(args.output)
+            book.save(args.output)
+        # end if
     # end for
 
     # Print information
