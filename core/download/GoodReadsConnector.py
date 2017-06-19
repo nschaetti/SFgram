@@ -1,8 +1,27 @@
+# -*- coding: utf-8 -*-
+#
+# File : core/download/GoodReadsConnector.py
+#
+# This file is part of pySpeeches.  pySpeeches is free software: you can
+# redistribute it and/or modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation, version 2.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Copyright Nils Schaetti, University of Neuchâtel <nils.schaetti@unine.ch>
 
-import urllib2
 from urllib2 import urlopen
 import bs4 as BeautifulSoup
-from dateutil.parser import parse
+import logging
+from requests.utils import quote
+from goodreads import client
 
 
 # Connector for GoodReads
@@ -10,8 +29,11 @@ class GoodReadsConnector(object):
 
     # Constructor
     def __init__(self):
-        self._base_url = "https://www.goodreads.com"
-        self._search_url = "https://www.goodreads.com/search?utf8=%E2%9C%93&q={}%20-cd&search_type=books"
+        """
+        Constructor
+        """
+        self._base_url = u"https://www.goodreads.com"
+        self._search_url = u"https://www.goodreads.com/search?utf8=%E2%9C%93&q={}%20-cd&search_type=books"
     # end __init__
 
     # Search for a book
@@ -22,7 +44,8 @@ class GoodReadsConnector(object):
         :return:
         """
         # Load HTML
-        html = urlopen(self._search_url.format(title.replace(" ", "+"))).read()
+        logging.getLogger(name="SFGram").debug(u"Retrieving GoodReads URL from %s" % self._search_url.format(quote(title, safe='')))
+        html = urlopen(self._search_url.format(quote(title, safe=''))).read()
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
@@ -99,7 +122,7 @@ class GoodReadsConnector(object):
         result = list()
 
         # Filters
-        filters = ["Science Fiction", "Fiction", "Literature", "Audiobook"]
+        filters = [u"Science Fiction", u"Fiction", u"Literature", u"Audiobook"]
 
         # Right container
         right_container = soup.find('div', attrs={'class': u"rightContainer"})
@@ -107,7 +130,7 @@ class GoodReadsConnector(object):
             if 'greyText' not in page_genre_link['class']:
                 element_name = page_genre_link.text.strip()
                 if element_name not in filters:
-                    result.append(element_name)
+                    result.append(element_name.title())
                 # end if
             # end if
         # end for
@@ -116,6 +139,11 @@ class GoodReadsConnector(object):
 
     # Get DataBox information
     def _get_databox_information(self, soup):
+        """
+        Get DataBox information.
+        :param soup:
+        :return:
+        """
         result = dict()
 
         # Data box

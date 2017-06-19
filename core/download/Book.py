@@ -1,12 +1,21 @@
+# -*- coding: utf-8 -*-
+#
 
 import urllib2
+import urlparse
 from urllib2 import urlopen
 import bs4 as BeautifulSoup
 from dateutil.parser import parse
 import wikipedia
 import re
 import json
+import os
+import logging
 from .GoodReadsConnector import GoodReadsConnector
+from requests.utils import quote
+from goodreads import client
+import time
+import goodreads
 
 
 # A book
@@ -18,9 +27,14 @@ class Book(object):
         Constructor
         :param num:
         """
-        self._ebooks_url = "http://www.gutenberg.org/ebooks/"
+        self._ebooks_url = u"http://www.gutenberg.org/ebooks/"
+        self._plaintext_url = u"http://www.gutenberg.org/ebooks/{}.txt.utf-8"
+        self._files_url = u"http://www.gutenberg.org/files/{}/"
         self._num = num
-        self._attrs = dict()
+        self._attrs = self._get_default_values()
+        self._attrs['Genres'] = list()
+        self._goodreads_client = client.GoodreadsClient("3H4jhs695dsDscTWMjKmw",
+                                                        "IGxF8r6Gg4FWPCQlPBpwkmQU2nZJWa6ZXCDRW7FtT5c")
 
         # Load info
         self._load_gutenberg_information()
@@ -33,6 +47,11 @@ class Book(object):
     # PUBLIC
     #
     ###################################################
+
+    # Get book's number
+    def get_num(self):
+        return self._num
+    # end get_num
 
     # Get book's title
     def get_title(self):
@@ -61,11 +80,171 @@ class Book(object):
         return self._attrs
     # end get_attrs
 
+    # Get book's attribute
+    def get_attr(self, key):
+        return self._attrs[key]
+    # end get_attr
+
+    # Save book information
+    def save(self, dataset_directory):
+        """
+        Save book information
+        :param dataset_directory:
+        :return:
+        """
+
+        # Create the directory
+        target_directory = os.path.join(dataset_directory, u"books", unicode(self._num))
+        try:
+            if not os.path.exists(os.path.join(dataset_directory, u"books")):
+                os.mkdir(os.path.join(dataset_directory, u"books"))
+            # end if
+            os.mkdir(target_directory)
+        except OSError as e:
+            logging.getLogger(name="SFGram").warning(u"Error while creating directory %s : %s" % (target_directory, unicode(e)))
+            pass
+        # end try
+
+        # Save JSON info file
+        logging.getLogger(name="SFGram").debug(u"Saving JSON file to %s" % os.path.join(target_directory, u"info.json"))
+        with open(os.path.join(target_directory, u"info.json"), 'w') as f:
+            json.dump(self._attrs, f, sort_keys=True, indent=4)
+        # end with
+
+        # Download the file
+        logging.getLogger(name="SFGram")\
+            .debug(u"Download plaintext file to %s" % os.path.join(target_directory, u"content.txt"))
+        self.download(os.path.join(target_directory, u"content.txt"))
+
+        # Create directory and download images
+        image_directory = os.path.join(target_directory, u"images")
+        try:
+            os.mkdir(image_directory)
+        except OSError:
+            pass
+        # end try
+        self.download_images(image_directory)
+    # end save
+
+    # Download the file
+    def download(self, content_file):
+        """
+        Download the file
+        :param content_file:
+        :return:
+        """
+        # Load URL
+        try:
+            text = urlopen(self._plaintext_url.format(self._num)).read()
+            # Save to file
+            with open(content_file, 'w') as f:
+                f.write(text)
+            # end with
+        except urllib2.HTTPError as e:
+            logging.getLogger(name="SFGram").error(u"HTTP Error when downloading %s : %s" %
+                                                   (self._plaintext_url.format(self._num), unicode(e)))
+            pass
+        # end try
+    # end download
+
+    # Download images
+    def download_images(self, images_directory):
+        # Get all images
+        images = self._explore_http_directory(self._files_url.format(self._num))
+
+        # Download all images from Gutenberg
+        index = 0
+        for image in images:
+            image_filename = image.split('/')[-1]
+            logging.getLogger(name="SFGram")\
+                .debug(u"Downloading image %s to %s" % (image, os.path.join(images_directory, image_filename)))
+            self._download_http_file(image, os.path.join(images_directory, image_filename))
+            index += 1
+        # end for
+
+        # Download all images from Wikipedia
+        if 'Images' in self._attrs:
+            for image in self._attrs['Images']:
+                image_filename = image.split('/')[-1]
+                logging.getLogger(name="SFGram") \
+                    .debug(u"Downloading image %s to %s" % (image, os.path.join(images_directory, image_filename)))
+                self._download_http_file(image, os.path.join(images_directory, image_filename))
+            # end for
+        # end if
+
+        # Download cover
+        if 'Cover' in self._attrs:
+            image_filename = self._attrs['Cover'].split('/')[-1]
+            file_ext = os.path.splitext(image_filename)[-1]
+            self._download_http_file(self._attrs['Cover'], os.path.join(images_directory, "cover" + file_ext))
+        # end if
+    # end download_images
+
     ###################################################
     #
     # PRIVATE
     #
     ###################################################
+
+    # Get default attribute values
+    def _get_default_values(self):
+        """
+        Get default attribute values
+        :return:
+        """
+        return {'Publication date': -1}
+    # end _get_default_values
+
+    # Dowload HTTP file
+    def _download_http_file(self, url, filename):
+        """
+        Download HTTP file
+        :param url:
+        :param filename:
+        :return:
+        """
+        f = urllib2.urlopen(url)
+        data = f.read()
+        with open(filename, "wb") as code:
+            code.write(data)
+        # end with
+    # end _download_http_file
+
+    # Explore HTTP directory
+    def _explore_http_directory(self, http_directory):
+        """
+        Explore HTTP directory
+        :param http_directory:
+        :return:
+        """
+        result = list()
+
+        # Load HTML
+        html = urlopen(http_directory).read()
+
+        # Parse HTML
+        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+
+        # For each file entry
+        for file_entry in soup.find_all('tr'):
+            try:
+                file_type = file_entry.find('td', attrs={'valign': 'top'}).find('img')['alt']
+                file_link = file_entry.find('a')['href']
+                if file_type == "[DIR]":
+                    images = self._explore_http_directory(http_directory + file_link)
+                    for im in images:
+                        result.append(im)
+                    # end for
+                elif file_type == "[IMG]":
+                    result.append(http_directory + file_link)
+                # end if
+            except AttributeError:
+                pass
+            # end try
+        # end for
+
+        return result
+    # end _explore_http_directory
 
     # Get Wikipedia info box
     def _get_wikipedia_infobox(self, html):
@@ -102,16 +281,80 @@ class Book(object):
         """
         Get GoodReads information
         """
+        # Search books
+        ok = False
+        while not ok:
+            try:
+                #books = self._goodreads_client.search_books(self._attrs["Title"],
+                #                                            search_field={'author': self._attrs['Authors'][0]})
+                if "Original Title" in self._attrs:
+                    books = self._goodreads_client.search_books(self._attrs["Original Title"])
+                else:
+                    books = self._goodreads_client.search_books(self._attrs["Title"])
+                # end if
+                ok = True
+            except goodreads.request.GoodreadsRequestException:
+                logging.getLogger(name="SFGram").warning("Error when retrieving information from Goodreads for {}"
+                                                         .format(self._attrs['Original Title']))
+                time.sleep(10)
+                pass
+            # end try
+        # end while
+        time.sleep(10)
+
+        # No ebooks
+        book = books[0]
+        for b in books:
+            if not book.is_ebook:
+                book = b
+            # end if
+        # end for
+
+        # Get informations
+        self._attrs['ISBN13'] = book.isbn13
+        self._attrs['ISBN'] = book.isbn
+        self._attrs['Similar Books'] = list()
+        self._attrs['Cover'] = book.image_url
+        self._attrs['Small Image'] = book.small_image_url
+        self._attrs['GoodReads URL'] = book.link
+        self._attrs['Description'] = book.description
+        self._attrs['Average Rating'] = book.average_rating
+        self._attrs['Language Code'] = book.language_code
+        self._attrs['Rating Count'] = book.ratings_count
+        self._attrs['Pages'] = book.num_pages
+        self._attrs['Format'] = book.format
+
+        # Similar books
+        try:
+            for b in book.similar_books:
+                self._attrs['Similar Books'].append(b.title)
+            # end for
+        except KeyError:
+            self._attrs['Similar Books'] = list()
+        # end try
+
+        # Genres
+        try:
+            for shelf in book.popular_shelves:
+                self._attrs['Genres'].append(shelf.name)
+            # end
+        except TypeError:
+            self._attrs['Similar Books'] = list()
+        # end try
 
         # GoodReads connector
-        goodreads_con = GoodReadsConnector()
+        """goodreads_con = GoodReadsConnector()
 
         # Get information
-        gr_info = goodreads_con.get_book_information(goodreads_con.search_book(self._attrs["Title"] + " " +
-                                                                               self._attrs["Authors"][0]))
+        gr_info = goodreads_con.get_book_information(goodreads_con.search_book(self._attrs["Title"]
+                                                                               + u" " + self._attrs["Authors"][0]))
 
         # Fields
-        self._attrs['Genres'] = gr_info['Genres']
+        for genre in gr_info['Genres']:
+            if genre not in self._attrs['Genres']:
+                self._attrs['Genres'].append(genre)
+            # end if
+        # end for
         if "ISBN" in gr_info:
             try:
                 self._attrs['ISBN'] = re.search(r"(\d{13})", gr_info['ISBN']).groups()[0]
@@ -124,7 +367,7 @@ class Book(object):
         self._attrs['GoodReads URL'] = gr_info['url']
         if "Cover" in gr_info:
             self._attrs['Cover'] = gr_info['Cover']
-        # end if
+        # end if"""
     # end _load_goodreads_information
 
     # Add field
@@ -163,15 +406,18 @@ class Book(object):
         :param wiki_info:
         :return:
         """
-        # Published
-        if "Published" in wiki_info:
-            year = re.search(r"([12][0-9]{3})", wiki_info['Published']).groups()[0]
-            self._attrs['Publication date'] = int(year)
-        # end if
         # Publication date
         if "Publication date" in wiki_info:
+            print(wiki_info['Publication date'])
             year = re.search(r"([12][0-9]{3})", wiki_info['Publication date']).groups()[0]
             self._attrs['Publication date'] = int(year)
+            # end if
+        elif "Published" in wiki_info:
+            print(wiki_info['Published'])
+            year = re.search(r"([12][0-9]{3})", wiki_info['Published']).groups()[0]
+            self._attrs['Publication date'] = int(year)
+        else:
+            self._attrs['Publication date'] = -1
         # end if
     # end _extract_publication_date
 
@@ -181,7 +427,7 @@ class Book(object):
         Load information from Wikipedia
         """
         # Search for the book on wikipedia
-        searches = wikipedia.search(self._attrs['Title'] + " " + self._attrs['Authors'][0])
+        searches = wikipedia.search(self._attrs['Title'] + u" " + self._attrs['Authors'][0])
 
         # For each response
         for page_title in searches:
@@ -190,12 +436,27 @@ class Book(object):
                     page = wikipedia.page(page_title)
                     wiki_info = self._get_wikipedia_infobox(page.html())
                     if u"Published" in wiki_info or u"Published in" in wiki_info or u"Publication date" in wiki_info:
+                        # Country
                         self._add_attr_field(wiki_info, 'Country', 'Country')
-                        self._attrs['Original title'] = page.original_title
+
+                        # Original title
+                        self._attrs['Original Title'] = page.original_title
+
+                        # Image
                         try:
                             self._attrs['Images'] = self._filter_wikipedia_images(page.images)
                         except KeyError:
                             pass
+                        # end try
+
+                        # Find plot
+                        for section in ("Plot", "Plot summary", "Synopsis"):
+                            if page.section(section) is not None:
+                                self._attrs['Plot'] = unicode(page.section(section))
+                            # end if
+                        # end for
+
+                        # Other
                         self._attrs['Summary'] = page.summary
                         self._attrs['Wikipedia URL'] = page.url
                         self._add_attr_field(wiki_info, u'Cover\u00a0artist', 'Cover artist')
@@ -211,6 +472,19 @@ class Book(object):
         # end for
     # end _load_wikipedia_info
 
+    def _filter_subjects(self, subject):
+        """
+        Filter subjects
+        :param subjects:
+        :return:
+        """
+        filter = ["Science fiction", "Fiction"]
+        if subject not in filter:
+            return subject
+        # end if
+        return None
+    # end _filter_subjects
+
     # Load Gutenberg informations
     def _load_gutenberg_information(self):
         """
@@ -218,7 +492,7 @@ class Book(object):
         :return:
         """
         # Load HTML
-        html = urlopen(self._ebooks_url + str(self._num)).read()
+        html = urlopen(self._ebooks_url + unicode(self._num)).read()
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
@@ -239,9 +513,12 @@ class Book(object):
         # end try
 
         # Subject
-        self._attrs['Subjects'] = list()
+        self._attrs['Genres'] = list()
         for subject in soup.find_all('td', attrs={'datatype': u"dcterms:LCSH"}):
-            self._attrs['Subjects'].append(subject.find('a').text.strip().split(" -- ")[0])
+            filtered_subject = self._filter_subjects(subject.find('a').text.strip().split(" -- ")[0])
+            if filtered_subject is not None:
+                self._attrs['Genres'].append(filtered_subject.title())
+            # end if
         # end for
 
         # Category

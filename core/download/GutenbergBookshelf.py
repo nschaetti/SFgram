@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 
 import urllib2
 from urllib2 import urlopen
@@ -14,7 +16,7 @@ class GutenbergBookshelf(object):
         Constructor
         :param num:
         """
-        self._url = "http://www.gutenberg.org/ebooks/bookshelf/"
+        self._url = u"http://www.gutenberg.org/ebooks/bookshelf/"
         self._start_index = -24
         self._end_index = 0
         self._step = 25
@@ -54,7 +56,7 @@ class GutenbergBookshelf(object):
 
         # Load HTML
         try:
-            html = urlopen(self._url + "?start_index=" + str(self._start_index + self._step)).read()
+            html = urlopen(self._url + u"?start_index=" + unicode(self._start_index + self._step)).read()
         except urllib2.URLError:
             return
         # end try

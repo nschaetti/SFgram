@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 
 from SFGCleaner import SFGCleaner
 from SFGTextCleaner import SFGTextCleaner
