@@ -17,6 +17,7 @@ from core.cleaning.TextCleaner import TextCleaner
 from goodreads import client
 import time
 import goodreads
+import codecs
 
 
 # A book
@@ -106,16 +107,16 @@ class Book(object):
             pass
         # end try
 
-        # Save JSON info file
-        logging.getLogger(name="SFGram").debug(u"Saving JSON file to %s" % os.path.join(target_directory, u"info.json"))
-        with open(os.path.join(target_directory, u"info.json"), 'w') as f:
-            json.dump(self._attrs, f, sort_keys=True, indent=4)
-        # end with
-
         # Download the file
         logging.getLogger(name="SFGram")\
             .debug(u"Download plaintext file to %s" % os.path.join(target_directory, u"content.txt"))
         self.download(os.path.join(target_directory, u"content.txt"))
+
+        # Save JSON info file
+        logging.getLogger(name="SFGram").debug(u"Saving JSON file to %s" % os.path.join(target_directory, u"info.json"))
+        with open(os.path.join(target_directory, u"info.json"), 'w') as f:
+            json.dump(self._attrs, f, sort_keys=True, indent=4)
+            # end with
 
         # Create directory and download images
         image_directory = os.path.join(target_directory, u"images")
@@ -137,14 +138,15 @@ class Book(object):
         # Load URL
         try:
             # Open URL
-            text = urlopen(self._plaintext_url.format(self._num)).read()
+            text = urlopen(self._plaintext_url.format(self._num)).read().decode("utf-8")
 
-            # Clean text
+            #  Clean text
             cleaner = TextCleaner()
-            cleaned_text = cleaner(text)
+            cleaned_text, cleaned = cleaner(text)
+            self._attrs['Cleaned'] = cleaned
 
             # Save to file
-            with open(content_file, 'w') as f:
+            with codecs.open(content_file, 'w', 'utf-8') as f:
                 f.write(cleaned_text)
             # end with
         except urllib2.HTTPError as e:
@@ -325,10 +327,10 @@ class Book(object):
         self._attrs['Small Image'] = book.small_image_url
         self._attrs['GoodReads URL'] = book.link
         self._attrs['Description'] = book.description
-        self._attrs['Average Rating'] = book.average_rating
+        self._attrs['Average Rating'] = float(book.average_rating)
         self._attrs['Language Code'] = book.language_code
-        self._attrs['Rating Count'] = book.ratings_count
-        self._attrs['Pages'] = book.num_pages
+        self._attrs['Rating Count'] = int(book.ratings_count)
+        self._attrs['Pages'] = int(book.num_pages)
         self._attrs['Format'] = book.format
 
         # Similar books
@@ -413,6 +415,8 @@ class Book(object):
         :param wiki_info:
         :return:
         """
+        print(wiki_info)
+        print(self._attrs['Title'])
         # Publication date
         if "Publication date" in wiki_info:
             print(wiki_info['Publication date'])

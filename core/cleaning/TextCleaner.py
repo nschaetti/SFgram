@@ -25,7 +25,7 @@ class TextCleaner(SFGCleaner):
         :return: Dictionary with text and information.
         """
         # Check if the default marker is here
-        if "*** START OF THIS PROJECT GUTENBERG" in text.upper():
+        if u"*** START OF THIS PROJECT GUTENBERG" in text.upper():
             # Split by lines
             lines = text.split('\n')
 
@@ -34,23 +34,24 @@ class TextCleaner(SFGCleaner):
             save = False
             for line in lines:
                 # Check if we passe the end ebbok tag
-                if "*** END OF THIS PROJECT GUTENBERG" in line.upper():
+                if u"*** END OF THIS PROJECT GUTENBERG" in line.upper() or u"End of Project Gutenberg's" in line or u"End of the Project Gutenberg" in line:
                     save = False
                 # end if
 
                 # Save line
-                if save:
+                if save and len(line) > 0 and line != u"\n" and line != u"\r\n" and line != u"\n\r"\
+                        and line != u"\u000A\u000D" and line[0] != chr(1) and line[0] != u"\r":
                     result.append(line)
                 # end if
 
                 # Check if we pass the start ebook tag
-                if "*** START OF THIS PROJECT GUTENBERG" in line.upper():
+                if u"*** START OF THIS PROJECT GUTENBERG" in line.upper():
                     save = True
                 # end if
             # end for
-            return '\n'.join(result)
+            return u'\n'.join(result), True
         else:
-            return text
+            return text, False
         # end if
     # end __call__
 
