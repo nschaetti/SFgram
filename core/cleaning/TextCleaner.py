@@ -25,7 +25,7 @@ class TextCleaner(SFGCleaner):
         :return: Dictionary with text and information.
         """
         # Check if the default marker is here
-        if "**** START OF THIS PROJECT GUTENBERG" in text.upper():
+        if "*** START OF THIS PROJECT GUTENBERG" in text.upper():
             # Split by lines
             lines = text.split('\n')
 
