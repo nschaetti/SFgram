@@ -436,47 +436,52 @@ class Book(object):
         # Search for the book on wikipedia
         searches = wikipedia.search(self._attrs['Title'] + u" " + self._attrs['Authors'][0])
 
-        # For each response
-        for page_title in searches:
-            if "disambiguation" not in page_title:
-                try:
-                    page = wikipedia.page(page_title)
-                    wiki_info = self._get_wikipedia_infobox(page.html())
-                    if u"Published" in wiki_info or u"Published in" in wiki_info or u"Publication date" in wiki_info:
-                        # Country
-                        self._add_attr_field(wiki_info, 'Country', 'Country')
+        try:
+            # For each response
+            for page_title in searches:
+                if "disambiguation" not in page_title:
+                    try:
+                        page = wikipedia.page(page_title)
+                        wiki_info = self._get_wikipedia_infobox(page.html())
+                        if u"Published" in wiki_info or u"Published in" in wiki_info or u"Publication date" in wiki_info:
+                            # Country
+                            self._add_attr_field(wiki_info, 'Country', 'Country')
 
-                        # Original title
-                        self._attrs['Original Title'] = page.original_title
+                            # Original title
+                            self._attrs['Original Title'] = page.original_title
 
-                        # Image
-                        try:
-                            self._attrs['Images'] = self._filter_wikipedia_images(page.images)
-                        except KeyError:
-                            pass
-                        # end try
+                            # Image
+                            try:
+                                self._attrs['Images'] = self._filter_wikipedia_images(page.images)
+                            except KeyError:
+                                pass
+                            # end try
 
-                        # Find plot
-                        for section in ("Plot", "Plot summary", "Synopsis"):
-                            if page.section(section) is not None:
-                                self._attrs['Plot'] = unicode(page.section(section))
-                            # end if
-                        # end for
+                            # Find plot
+                            for section in ("Plot", "Plot summary", "Synopsis"):
+                                if page.section(section) is not None:
+                                    self._attrs['Plot'] = unicode(page.section(section))
+                                # end if
+                            # end for
 
-                        # Other
-                        self._attrs['Summary'] = page.summary
-                        self._attrs['Wikipedia URL'] = page.url
-                        self._add_attr_field(wiki_info, u'Cover\u00a0artist', 'Cover artist')
-                        self._extract_publication_date(wiki_info)
-                        self._add_attr_field(wiki_info, u'Publisher', 'Publisher')
-                        self._add_attr_field(wiki_info, u'Published in', 'Published in')
-                        return
-                    # end if
-                except wikipedia.exceptions.DisambiguationError:
-                    pass
-                # end try
-            # end if
-        # end for
+                            # Other
+                            self._attrs['Summary'] = page.summary
+                            self._attrs['Wikipedia URL'] = page.url
+                            self._add_attr_field(wiki_info, u'Cover\u00a0artist', 'Cover artist')
+                            self._extract_publication_date(wiki_info)
+                            self._add_attr_field(wiki_info, u'Publisher', 'Publisher')
+                            self._add_attr_field(wiki_info, u'Published in', 'Published in')
+                            return
+                        # end if
+                    except wikipedia.exceptions.DisambiguationError:
+                        pass
+                    # end try
+                # end if
+            # end for
+        except wikipedia.exceptions.PageError:
+            logging.getLogger(name="SFGram").error("Cannot find Wikipedia page for {}".format(self._attrs['Title']))
+            self._attrs['Wikipedia Not Found'] = True
+        # end try
     # end _load_wikipedia_info
 
     def _filter_subjects(self, subject):
