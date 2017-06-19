@@ -13,6 +13,7 @@ import os
 import logging
 from .GoodReadsConnector import GoodReadsConnector
 from requests.utils import quote
+from core.cleaning.TextCleaner import TextCleaner
 from goodreads import client
 import time
 import goodreads
@@ -135,10 +136,16 @@ class Book(object):
         """
         # Load URL
         try:
+            # Open URL
             text = urlopen(self._plaintext_url.format(self._num)).read()
+
+            # Clean text
+            cleaner = TextCleaner()
+            cleaned_text = cleaner(text)
+
             # Save to file
             with open(content_file, 'w') as f:
-                f.write(text)
+                f.write(cleaned_text)
             # end with
         except urllib2.HTTPError as e:
             logging.getLogger(name="SFGram").error(u"HTTP Error when downloading %s : %s" %
