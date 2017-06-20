@@ -288,9 +288,13 @@ class Book(object):
             for row in infobox_table.find_all('tr'):
                 field_header = row.find('th')
                 if field_header is not None and "colspan" not in field_header.attrs:
-                    field_name = row.find('th').text.strip()
-                    field_value = row.find('td').text.strip()
-                    result[field_name] = field_value
+                    try:
+                        field_name = row.find('th').text.strip()
+                        field_value = row.find('td').text.strip()
+                        result[field_name] = field_value
+                    except AttributeError:
+                        pass
+                    # end try
                 # end if
             # end for
         # end if
@@ -315,13 +319,23 @@ class Book(object):
                 # end if
                 ok = True
             except goodreads.request.GoodreadsRequestException:
-                logging.getLogger(name="SFGram").warning("Error when retrieving information from Goodreads for {}"
-                                                         .format(self._attrs['Original Title']))
+                if "Original Title" in self._attrs:
+                    logging.getLogger(name="SFGram").warning("Error when retrieving information from Goodreads for {}"
+                                                             .format(self._attrs['Original Title']))
+                else:
+                    logging.getLogger(name="SFGram").warning("Error when retrieving information from Goodreads for {}"
+                                                             .format(self._attrs['Title']))
+                # end if
                 time.sleep(10)
                 pass
             except TypeError:
-                logging.getLogger(name="SFGram").warning("Book \"{}\" not found on GoodReads"
-                                                         .format(self._attrs['Original Title']))
+                if "Original Title" in self._attrs:
+                    logging.getLogger(name="SFGram").warning("Book \"{}\" not found on GoodReads"
+                                                             .format(self._attrs['Original Title']))
+                else:
+                    logging.getLogger(name="SFGram").warning("Book \"{}\" not found on GoodReads"
+                                                             .format(self._attrs['Title']))
+                # end if
                 self._attrs['GoodReads Not Found'] = True
                 return
             # end try
@@ -355,7 +369,7 @@ class Book(object):
             self._attrs['Pages'] = int(book.num_pages)
         # end if
         self._attrs['Format'] = book.format
-
+        print(book.publication_date)
         # Similar books
         try:
             for b in book.similar_books:
@@ -421,10 +435,12 @@ class Book(object):
                 year = re.search(r"([12][0-9]{3})", wiki_info['Published']).groups()[0]
                 self._attrs['Publication date'] = int(year)
             else:
+                print(self._attrs['Wikipedia URL'])
                 self._attrs['Publication date'] = -1
             # end if
         except AttributeError:
             self._attrs['Publication date'] = -1
+            print(self._attrs['Wikipedia URL'])
         # end try
     # end _extract_publication_date
 
@@ -497,14 +513,28 @@ class Book(object):
         return None
     # end _filter_subjects
 
-    # Load Gutenberg informations
+    # Load Gutenberg information
     def _load_gutenberg_information(self):
         """
-        Load Gutenberg informations
+        Load Gutenberg information
         :return:
         """
         # Load HTML
-        html = urlopen(self._ebooks_url + unicode(self._num)).read()
+        success = False
+        errors = 0
+        while not success:
+            try:
+                html = urlopen(self._ebooks_url + unicode(self._num)).read()
+                success = True
+            except urllib2.HTTPError as e:
+                logging.error(u"HTTP error trying to retrieve {} : {}".format(self._ebooks_url + unicode(self._num), unicode(e)))
+                errors += 1
+                pass
+            # end try
+            if errors >= 10:
+                logging.fatal(u"Fatal HTTP error trying to retrieve {} : {}".format(self._ebooks_url + unicode(self._num), unicode(e)))
+                exit()
+        # end while
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
