@@ -2,11 +2,9 @@
 #
 
 import argparse
-import os
-import re
 import logging
-import core.cleaning as cl
-import core.download as dw
+from mongoengine import *
+import download as dw
 
 ######################################################
 #
@@ -33,6 +31,9 @@ if __name__ == "__main__":
     # Logs
     logging.basicConfig(level=args.log_level)
     logger = logging.getLogger(name="SFgram")
+
+    # Connection to MongoDB
+    connect(args.database)
 
     # Statistics
     count = 0
