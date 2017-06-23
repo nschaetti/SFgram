@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     # For each book
     for index, movie in enumerate(imdb_con):
-        logging.info(u"Movie {} ({})".format(movie.title, movie.year))
+        logging.info(u"Movie {} ({}), {}, {}".format(movie.title, movie.year, movie.country, movie.language))
     # end for
 
 # end if

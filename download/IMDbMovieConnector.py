@@ -14,6 +14,7 @@ import re
 import time
 from db.Movie import Movie
 from db.Poster import Poster
+from db.Keyword import Keyword
 
 
 # IMDb connector
@@ -146,6 +147,74 @@ class IMDbMovieConnector(object):
         # end try
     # end _extract_year
 
+    # Extract plot
+    def _extract_plot(self, movie_id):
+        """
+        Extract plot
+        :param movie_id:
+        :return:
+        """
+        # Default
+        plot = ""
+
+        # Movie URL
+        plot_url = u"http://www.imdb.com/title/tt{}/plotsummary?ref_=tt_stry_pl".format(movie_id)
+
+        # Get HTML
+        logging.debug(u"Downloading page " + plot_url)
+        html = urlopen(plot_url).read()
+        time.sleep(2)
+
+        # Parse HTML
+        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+
+        # Find all text block
+        for plot_p in soup.find_all('p', attrs={"class": u"plotSummary"}):
+            plot += " " + plot_p.text
+        # end for
+
+        return plot
+    # end _extract_plot
+
+    # Extract information
+    def _extract_information(self, movie_id):
+        """
+        Extract country
+        :param movie_id:
+        :return:
+        """
+        # Default
+        country = ""
+        language = ""
+
+        # Movie URL
+        movie_url = u"http://www.imdb.com/title/tt{}/?ref_=adv_li_tt".format(movie_id)
+
+        # Get movie HTML
+        logging.debug(u"Downloading page " + movie_url)
+        html = urlopen(movie_url).read()
+        time.sleep(2)
+
+        # Parse HTML
+        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+
+        # Find all text block
+        for text_block in soup.find_all('div', attrs={"class": u"txt-block"}):
+            try:
+                text_block_key = text_block.find('h4').text
+                if text_block_key == u"Language:":
+                    language = text_block.find('a').text
+                elif text_block_key == u"Country:":
+                    country = text_block.find('a').text
+                # end if
+            except AttributeError:
+                pass
+            # end try
+        # end for
+
+        return country, language
+    # end _extract_information
+
     # Load elements
     def _load(self):
         """
@@ -156,7 +225,7 @@ class IMDbMovieConnector(object):
 
         # Load HTML
         try:
-            logging.info(u"Downloading page " + page_url)
+            logging.debug(u"Downloading page " + page_url)
             html = urlopen(page_url).read()
             time.sleep(2)
         except urllib2.URLError:
@@ -195,14 +264,40 @@ class IMDbMovieConnector(object):
                             # New movie
                             movie = Movie(movie_id=str(found_movie.movieID), title=found_movie['title'], year=movie_year)
 
+                            # Country, language
+                            country, language = self._extract_information(found_movie.movieID)
+
+                            # Plot
+                            plot = self._extract_plot(found_movie.movieID)
+
                             # ID and URL
                             movie.url = movie_link
+
+                            # Language
+                            try:
+                                movie.language = found_movie['language']
+                            except KeyError:
+                                movie.language = language
+                            # end try
+
+                            # Country
+                            try:
+                                movie.country = found_movie['country']
+                            except KeyError:
+                                movie.country = country
+                            # end try
+
+                            # Plot
+                            movie.plot = plot
 
                             # Poster
                             poster_link = self._extract_poster_link(movie_link)
 
                             # Only with poster
                             if poster_link is not None:
+                                # Save movie
+                                movie.save()
+
                                 # Add/create poster
                                 if Poster.exists(poster_link):
                                     poster = Poster.get_by_url(poster_link)
@@ -215,6 +310,25 @@ class IMDbMovieConnector(object):
                                     ext, data = IMDbMovieConnector.download_http_file(poster_link)
                                     poster.image.put(data)
                                 # end if
+
+                                # Save each keywords
+                                for keyword in IMDbMovieConnector.get_keywords(found_movie.movieID):
+                                    if Keyword.exists(keyword_name=keyword):
+                                        keyword_object = Keyword.get_by_name(keyword_name=keyword)
+                                    else:
+                                        keyword_object = Keyword(name=keyword)
+                                    # end if
+
+                                    # Add movie and increment
+                                    keyword_object.movies.append(movie)
+                                    keyword_object.n_movies += 1
+
+                                    # Save keyword
+                                    keyword_object.save()
+
+                                    # Add
+                                    movie.keywords.append(keyword_object)
+                                # end for
 
                                 # Save poster
                                 poster.save()
@@ -237,6 +351,43 @@ class IMDbMovieConnector(object):
         # Next page
         self._page_index += 1
     # end _load
+
+    # Get keywords
+    @staticmethod
+    def get_keywords(movie_id):
+        """
+        Get genres
+        :param movie_id:
+        :return:
+        """
+        # Results
+        keywords = list()
+
+        # URL
+        keywords_url = u"http://www.imdb.com/title/tt{}/keywords?ref_=tt_stry_kw".format(movie_id)
+
+        # Download HTML
+        logging.debug(u"Downloading page " + keywords_url)
+        html = urlopen(keywords_url).read()
+        time.sleep(2)
+
+        # Parse HTML
+        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+
+        # Get keywords
+        sodatext_divs = soup.find_all('div', attrs={"class": u"sodatext"})
+
+        # For each div
+        for sodatext in sodatext_divs:
+            # Get keyword text
+            keyword_text = sodatext.find('a').text
+
+            # Add
+            keywords.append(keyword_text)
+        # end for
+
+        return keywords
+    # end get_keywords
 
     # Dowload HTTP file
     @staticmethod

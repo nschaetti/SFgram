@@ -17,6 +17,10 @@ class Movie(Document):
     poster = ReferenceField("Poster")
     year = IntField()
     url = URLField()
+    keywords = ListField(ReferenceField("Keyword"))
+    country = StringField()
+    language = StringField()
+    plot = StringField()
 
     # Does the movie exists
     @staticmethod
