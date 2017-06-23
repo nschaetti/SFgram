@@ -15,6 +15,7 @@ import time
 from db.Movie import Movie
 from db.Poster import Poster
 from db.Keyword import Keyword
+from db.Country import Country
 
 
 # IMDb connector
@@ -282,10 +283,21 @@ class IMDbMovieConnector(object):
 
                             # Country
                             try:
-                                movie.country = found_movie['country']
+                                the_country = found_movie['country']
                             except KeyError:
-                                movie.country = country
+                                the_country = country
                             # end try
+                            if the_country != "":
+                                if Country().exists(the_country):
+                                    country_object = Country().get_by_name(the_country)
+                                else:
+                                    country_object = Country(name=the_country)
+                                # end if
+                                country_object.movies.append(movie)
+                                country_object.n_movies += 1
+                                country_object.save()
+                                movie.country = country_object
+                            # end if
 
                             # Plot
                             movie.plot = plot
