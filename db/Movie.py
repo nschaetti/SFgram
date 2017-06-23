@@ -12,32 +12,33 @@ class Movie(Document):
     """
 
     # Fields
-    id = StringField()
+    movie_id = StringField()
     title = StringField()
     poster = ReferenceField("Poster")
     year = IntField()
+    url = URLField()
 
     # Does the movie exists
     @staticmethod
-    def exists(movie_title):
+    def exists(movie_title, year):
         """
         Does a movie exists
         :param movie_title:
         :return:
         """
-        movies = Movie.objects(title=movie_title)
+        movies = Movie.objects(title=movie_title, year=year)
         return movies.count() > 0
     # end exists
 
     # Get book from title
     @staticmethod
-    def get_by_title(movie_title):
+    def get_by_title_and_year(movie_title, year):
         """
         Get book from its title
         :param book_title:
         :return:
         """
-        movies = Movie.objects(title=movie_title)
+        movies = Movie.objects(title=movie_title, year=year)
         if movies.count() > 0:
             return movies[0]
         else:

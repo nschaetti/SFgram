@@ -46,12 +46,7 @@ if __name__ == "__main__":
 
     # For each book
     for index, movie in enumerate(imdb_con):
-        # Registered
-        print(movie.movieID)
-        print(movie)
-        print(movie['url'])
-        print(movie['poster_link'])
-        print("")
+        logging.info(u"Movie {} ({})".format(movie.title, movie.year))
     # end for
 
 # end if

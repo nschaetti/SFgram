@@ -2,6 +2,7 @@
 #
 
 # Import
+import os
 import imdb
 import urllib2
 from urllib2 import urlopen
@@ -10,6 +11,9 @@ import bs4 as BeautifulSoup
 import imdb
 from dateutil.parser import parse
 import re
+import time
+from db.Movie import Movie
+from db.Poster import Poster
 
 
 # IMDb connector
@@ -52,7 +56,7 @@ class IMDbMovieConnector(object):
         if len(self._movies) == 0:
             self._load()
         # end if
-        print(len(self._movies))
+
         # Movie title
         movie_title = self._movies[0]
 
@@ -84,8 +88,9 @@ class IMDbMovieConnector(object):
         :return:
         """
         # Load HTML
-        logging.info(u"Downloading page " + url)
+        logging.debug(u"Downloading page " + url)
         html = urlopen(url).read()
+        time.sleep(2)
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
@@ -105,7 +110,7 @@ class IMDbMovieConnector(object):
         :return:
         """
         # Load HTML
-        logging.info(u"Downloading page " + url)
+        logging.debug(u"Downloading page " + url)
         html = urlopen(url).read()
 
         # Parse HTML
@@ -153,6 +158,7 @@ class IMDbMovieConnector(object):
         try:
             logging.info(u"Downloading page " + page_url)
             html = urlopen(page_url).read()
+            time.sleep(2)
         except urllib2.URLError:
             raise StopIteration
         # end try
@@ -184,15 +190,43 @@ class IMDbMovieConnector(object):
             for found_movie in found_movies:
                 try:
                     if found_movie['year'] == movie_year:
-                        # URL
-                        found_movie['url'] = movie_link
+                        # Movie does not exists
+                        if not Movie.exists(movie_title, movie_year):
+                            # New movie
+                            movie = Movie(movie_id=str(found_movie.movieID), title=found_movie['title'], year=movie_year)
 
-                        # Poster link
-                        found_movie['poster_link'] = self._extract_poster_link(movie_link)
+                            # ID and URL
+                            movie.url = movie_link
 
-                        # Add
-                        self._movies.append(found_movie)
-                        break
+                            # Poster
+                            poster_link = self._extract_poster_link(movie_link)
+
+                            # Only with poster
+                            if poster_link is not None:
+                                # Add/create poster
+                                if Poster.exists(poster_link):
+                                    poster = Poster.get_by_url(poster_link)
+                                else:
+                                    # New poster
+                                    poster = Poster()
+                                    poster.url = poster_link
+
+                                    # Download image
+                                    ext, data = IMDbMovieConnector.download_http_file(poster_link)
+                                    poster.image.put(data)
+                                # end if
+
+                                # Save poster
+                                poster.save()
+
+                                # Save movie
+                                movie.save()
+
+                                # Add
+                                self._movies.append(movie)
+                            # end if
+                            break
+                        # end if
                     # end if
                 except KeyError:
                     pass
@@ -203,5 +237,43 @@ class IMDbMovieConnector(object):
         # Next page
         self._page_index += 1
     # end _load
+
+    # Dowload HTTP file
+    @staticmethod
+    def download_http_file(url):
+        """
+        Download HTTP file
+        :param url:
+        :return:
+        """
+        # Get ext
+        ext = os.path.splitext(url.split("/")[-1])[1]
+
+        # Control
+        success = False
+        count = 0
+
+        # Try
+        while not success:
+            try:
+                logging.debug(u"Downloading HTTP file {}".format(url))
+                f = urllib2.urlopen(url)
+                success = True
+            except urllib2.URLError:
+                pass
+            # end try
+
+            # Count
+            count += 1
+
+            # Limit
+            if count >= 10:
+                logging.fatal(u"Impossible to download {}".format(url))
+                exit()
+                # end if
+        # end while
+
+        return ext, f.read()
+    # end download_http_file
 
 # end IMDbMovieConnector
