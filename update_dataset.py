@@ -5,12 +5,23 @@ import argparse
 import logging
 from mongoengine import *
 import download as dw
+from db.Author import Author
 
 ######################################################
 #
 # Functions
 #
 ######################################################
+
+
+def get_author(author_name):
+    # Check if exists
+    if Author.exists(author_name=author_name):
+        return Author.get_by_name(author_name)
+    else:
+        return Author(name=author_name)
+    # end if
+# end create_author
 
 ######################################################
 #
@@ -25,6 +36,7 @@ if __name__ == "__main__":
 
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
+    parser.add_argument("--start-index", type=int, help="Start page index", default=1)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -41,22 +53,21 @@ if __name__ == "__main__":
 
     # Open category
     gutenberg_con = dw.GutenbergBookshelf()
-    gutenberg_con.open(68)
+    gutenberg_con.open(num=68, start_index=args.start_index)
 
     # GoodReads connector
     goodreads_con = dw.GoodReadsConnector()
 
     # For each book
     for index, book in enumerate(gutenberg_con):
-        """if not book.downloaded(args.output):
-            logger.info("Saving book %d, %s by %s, %d" % (book.get_num(), book.get_title(), book.get_author()[0],
-                                                      book.get_attr("Publication date")))
-            book.save(args.output)
-        # end if"""
-        print(book)
-    # end for
+        # Registered
+        logging.info(u"Book {} ({}), {} ({}) saved in database".format(book.title, book.publication_date,
+                                                                       book.author.name,
+                                                                       book.country.name if book.country is not None
+                                                                       else ""))
 
-    # Print information
-    print("Imported: %d novels, %d tokens" % (count, token_count))
+        # Save book in DB
+        book.save()
+    # end for
 
 # end if

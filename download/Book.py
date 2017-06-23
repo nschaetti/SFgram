@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
 #
 
-import urllib2
-import urlparse
-from urllib2 import urlopen
 import bs4 as BeautifulSoup
-from dateutil.parser import parse
-import wikipedia
-import re
-import json
-import os
-import logging
-from .GoodReadsConnector import GoodReadsConnector
-from requests.utils import quote
-from core.cleaning.TextCleaner import TextCleaner
-from goodreads import client
-import time
-import goodreads
 import codecs
+import json
+import logging
+import os
+import re
+import time
+import urllib2
+from dateutil.parser import parse
+from urllib2 import urlopen
+
+import goodreads
 import requests
+import wikipedia
+from goodreads import client
+
+from cleaning.TextCleaner import TextCleaner
 
 
 # A book

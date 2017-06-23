@@ -3,3 +3,4 @@
 
 from GutenbergBookshelf import GutenbergBookshelf
 from GoodReadsConnector import GoodReadsConnector
+from IMDbMovieConnector import IMDbMovieConnector

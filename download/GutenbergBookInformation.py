@@ -24,6 +24,7 @@ class GutenbergBookInformation(object):
         """
         # URL
         ebooks_url = u"http://www.gutenberg.org/ebooks/" + unicode(num)
+        files_url = u"http://www.gutenberg.org/files/{}/"
 
         # Result
         info = dict()
@@ -90,6 +91,24 @@ class GutenbergBookInformation(object):
         # Copyright
         info['Copyright'] = soup.find('td', attrs={'property': u"dcterms:rights"}).text.strip()
 
+        # Images
+        info['Images'] = GutenbergBookInformation.explore_http_directory(files_url.format(num))
+
+        # Cover art
+        img_cover_art = soup.find('img', attrs={'class': u"cover-art"})
+        if img_cover_art is not None:
+            # Get URL
+            cover_art_url = img_cover_art.attrs['src']
+
+            # Add http:
+            if cover_art_url[:5] != "http:":
+                cover_art_url = "http:" + cover_art_url
+            # end if
+
+            # Save
+            info['Cover-art'] = cover_art_url
+        # end if
+
         return info
     # end get_book_info
 
@@ -118,5 +137,72 @@ class GutenbergBookInformation(object):
         # end if
         return None
     # end _filter_subjects
+
+    ##########################################
+    # Private
+    ##########################################
+
+    # Explore HTTP directory
+    @staticmethod
+    def explore_http_directory(http_directory):
+        """
+        Explore HTTP directory
+        :param http_directory:
+        :return:
+        """
+        # Images URL
+        files_url = u"http://www.gutenberg.org/files/{}/"
+
+        # Results
+        result = list()
+
+        # Control
+        success = False
+        count = 0
+
+        # Load HTML
+        while not success:
+            try:
+                html = urlopen(http_directory).read()
+                success = True
+            except urllib2.HTTPError as e:
+                if e.code == 404 or e.code == 403:
+                    return result
+                # end if
+                pass
+            # end try
+
+            # Count
+            count += 1
+
+            # Max
+            if count >= 10:
+                return result
+            # end if
+        # end while
+
+        # Parse HTML
+        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+
+        # For each file entry
+        for file_entry in soup.find_all('tr'):
+            try:
+                file_type = file_entry.find('td', attrs={'valign': 'top'}).find('img')['alt']
+                file_link = file_entry.find('a')['href']
+                if file_type == "[DIR]":
+                    images = GutenbergBookInformation.explore_http_directory(http_directory + file_link)
+                    for im in images:
+                        result.append(im)
+                        # end for
+                elif file_type == "[IMG]":
+                    result.append(http_directory + file_link)
+                    # end if
+            except AttributeError:
+                pass
+                # end try
+        # end for
+
+        return result
+    # end _explore_http_directory
 
 # end GutenbergBookInformation
