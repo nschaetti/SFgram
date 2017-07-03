@@ -174,7 +174,13 @@ class IMDbMovieConnector(object):
             plot += " " + plot_p.text
         # end for
 
-        return plot
+        # Clean text
+        plot = plot.replace(u"\n", u"")
+        for i in range(10):
+            plot = plot.replace(u"  ", u" ")
+        # end for
+
+        return plot.strip()
     # end _extract_plot
 
     # Extract information
@@ -281,24 +287,6 @@ class IMDbMovieConnector(object):
                                 movie.language = language
                             # end try
 
-                            # Country
-                            try:
-                                the_country = found_movie['country']
-                            except KeyError:
-                                the_country = country
-                            # end try
-                            if the_country != "":
-                                if Country().exists(the_country):
-                                    country_object = Country().get_by_name(the_country)
-                                else:
-                                    country_object = Country(name=the_country)
-                                # end if
-                                country_object.movies.append(movie)
-                                country_object.n_movies += 1
-                                country_object.save()
-                                movie.country = country_object
-                            # end if
-
                             # Plot
                             movie.plot = plot
 
@@ -341,6 +329,26 @@ class IMDbMovieConnector(object):
                                     # Add
                                     movie.keywords.append(keyword_object)
                                 # end for
+
+                                # Country
+                                try:
+                                    the_country = found_movie['country']
+                                except KeyError:
+                                    the_country = country
+                                # end try
+
+                                # If country is ok
+                                if the_country != "":
+                                    if Country().exists(the_country):
+                                        country_object = Country().get_by_name(the_country)
+                                    else:
+                                        country_object = Country(name=the_country)
+                                    # end if
+                                    country_object.movies.append(movie)
+                                    country_object.n_movies += 1
+                                    country_object.save()
+                                    movie.country = country_object
+                                # end if
 
                                 # Save poster
                                 poster.save()

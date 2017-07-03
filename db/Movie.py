@@ -18,9 +18,10 @@ class Movie(Document):
     year = IntField()
     url = URLField()
     keywords = ListField(ReferenceField("Keyword"))
-    country = StringField()
+    country = ReferenceField("Country")
     language = StringField()
     plot = StringField()
+    gross = FloatField(null=True)
 
     # Does the movie exists
     @staticmethod

@@ -18,7 +18,7 @@ class Country(Document):
     n_books = IntField()
     name = StringField(required=True, max_length=100)
     movies = ListField(ReferenceField("Movie"))
-    n_movies = IntField()
+    n_movies = IntField(default=0)
 
     ###############################################
     # PUBLIC
