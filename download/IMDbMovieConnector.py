@@ -193,6 +193,7 @@ class IMDbMovieConnector(object):
         # Default
         country = ""
         language = ""
+        gross = 0
 
         # Movie URL
         movie_url = u"http://www.imdb.com/title/tt{}/?ref_=adv_li_tt".format(movie_id)
@@ -213,13 +214,17 @@ class IMDbMovieConnector(object):
                     language = text_block.find('a').text
                 elif text_block_key == u"Country:":
                     country = text_block.find('a').text
+                elif text_block_key == u"Gross:":
+                    gross_text = re.search(r"(\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}(,?\d{3})?(\.\d\d?)?\)?)",
+                                           text_block.find('a').text).groups()[0]
+                    gross = int(gross_text.replace(u'$', u'').replace(u',', u''))
                 # end if
             except AttributeError:
                 pass
             # end try
         # end for
 
-        return country, language
+        return country, language, gross
     # end _extract_information
 
     # Load elements
