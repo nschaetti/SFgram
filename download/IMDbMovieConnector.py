@@ -124,7 +124,11 @@ class IMDbMovieConnector(object):
         # if poster exists
         if poster_div is not None:
             # Poster link
-            poster_page_link = u"http://www.imdb.com/" + poster_div.find('a').attrs['href']
+            try:
+                poster_page_link = u"http://www.imdb.com/" + poster_div.find('a').attrs['href']
+            except AttributeError:
+                return None
+            # end try
 
             # Extract poster source
             return self._extract_poster_source(poster_page_link)
@@ -193,7 +197,8 @@ class IMDbMovieConnector(object):
         # Default
         country = ""
         language = ""
-        gross = 0
+        gross = None
+        budget = None
 
         # Movie URL
         movie_url = u"http://www.imdb.com/title/tt{}/?ref_=adv_li_tt".format(movie_id)
@@ -215,16 +220,20 @@ class IMDbMovieConnector(object):
                 elif text_block_key == u"Country:":
                     country = text_block.find('a').text
                 elif text_block_key == u"Gross:":
-                    gross_text = re.search(r"(\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}(,?\d{3})?(\.\d\d?)?\)?)",
-                                           text_block.find('a').text).groups()[0]
+                    gross_text = re.search(r"(\$(\d{1,3}(\,\d{1,3})*))",
+                                           text_block.text).groups()[0]
                     gross = int(gross_text.replace(u'$', u'').replace(u',', u''))
+                elif text_block_key == u"Budget:":
+                    budget_text = re.search(r"(\$(\d{1,3}(\,\d{1,3})*))",
+                                            text_block.text).groups()[0]
+                    budget = int(budget_text.replace(u'$', u'').replace(u',', u''))
                 # end if
-            except AttributeError:
+            except AttributeError as e:
                 pass
             # end try
         # end for
 
-        return country, language, gross
+        return country, language, gross, budget
     # end _extract_information
 
     # Load elements
@@ -237,6 +246,7 @@ class IMDbMovieConnector(object):
 
         # Load HTML
         try:
+            logging.info(u"Accessing page index {}".format(self._page_index))
             logging.debug(u"Downloading page " + page_url)
             html = urlopen(page_url).read()
             time.sleep(2)
@@ -272,15 +282,21 @@ class IMDbMovieConnector(object):
                 try:
                     if found_movie['year'] == movie_year:
                         # Movie does not exists
-                        if not Movie.exists(movie_title, movie_year):
+                        if not Movie.exists(movie_title, movie_year) and not Movie.id_exists(found_movie.movieID) \
+                                and found_movie['kind'] == "movie":
                             # New movie
                             movie = Movie(movie_id=str(found_movie.movieID), title=found_movie['title'], year=movie_year)
+                            movie.save()
 
                             # Country, language
-                            country, language = self._extract_information(found_movie.movieID)
+                            country, language, gross, budget = self._extract_information(found_movie.movieID)
 
                             # Plot
                             plot = self._extract_plot(found_movie.movieID)
+
+                            # Gross and budget
+                            movie.gross = gross
+                            movie.budget = budget
 
                             # ID and URL
                             movie.url = movie_link
@@ -300,9 +316,6 @@ class IMDbMovieConnector(object):
 
                             # Only with poster
                             if poster_link is not None:
-                                # Save movie
-                                movie.save()
-
                                 # Add/create poster
                                 if Poster.exists(poster_link):
                                     poster = Poster.get_by_url(poster_link)
@@ -316,54 +329,59 @@ class IMDbMovieConnector(object):
                                     poster.image.put(data)
                                 # end if
 
-                                # Save each keywords
-                                for keyword in IMDbMovieConnector.get_keywords(found_movie.movieID):
-                                    if Keyword.exists(keyword_name=keyword):
-                                        keyword_object = Keyword.get_by_name(keyword_name=keyword)
-                                    else:
-                                        keyword_object = Keyword(name=keyword)
-                                    # end if
-
-                                    # Add movie and increment
-                                    keyword_object.movies.append(movie)
-                                    keyword_object.n_movies += 1
-
-                                    # Save keyword
-                                    keyword_object.save()
-
-                                    # Add
-                                    movie.keywords.append(keyword_object)
-                                # end for
-
-                                # Country
-                                try:
-                                    the_country = found_movie['country']
-                                except KeyError:
-                                    the_country = country
-                                # end try
-
-                                # If country is ok
-                                if the_country != "":
-                                    if Country().exists(the_country):
-                                        country_object = Country().get_by_name(the_country)
-                                    else:
-                                        country_object = Country(name=the_country)
-                                    # end if
-                                    country_object.movies.append(movie)
-                                    country_object.n_movies += 1
-                                    country_object.save()
-                                    movie.country = country_object
-                                # end if
-
                                 # Save poster
                                 poster.save()
+                                movie.poster = poster
+                            # end if
 
-                                # Save movie
-                                movie.save()
+                            # Save each keywords
+                            for keyword in IMDbMovieConnector.get_keywords(found_movie.movieID):
+                                if Keyword.exists(keyword_name=keyword):
+                                    keyword_object = Keyword.get_by_name(keyword_name=keyword)
+                                else:
+                                    keyword_object = Keyword(name=keyword)
+                                # end if
+
+                                # Add movie and increment
+                                keyword_object.movies.append(movie)
+                                keyword_object.n_movies += 1
+
+                                # Save keyword
+                                keyword_object.save()
 
                                 # Add
-                                self._movies.append(movie)
+                                movie.keywords.append(keyword_object)
+                            # end for
+
+                            # Country
+                            try:
+                                the_country = found_movie['country']
+                            except KeyError:
+                                the_country = country
+                            # end try
+
+                            # If country not found, get Unknown
+                            if the_country == "":
+                                the_country = "Unknown"
+                            # endif
+
+                            # Create or get country
+                            if Country().exists(the_country):
+                                country_object = Country().get_by_name(the_country)
+                            else:
+                                country_object = Country(name=the_country)
                             # end if
+                            country_object.movies.append(movie)
+                            country_object.n_movies += 1
+                            country_object.save()
+                            movie.country = country_object
+
+                            # Save movie
+                            movie.save()
+
+                            # Add
+                            self._movies.append(movie)
+
                             break
                         # end if
                     # end if

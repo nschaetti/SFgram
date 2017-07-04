@@ -14,14 +14,15 @@ class Movie(Document):
     # Fields
     movie_id = StringField()
     title = StringField()
-    poster = ReferenceField("Poster")
+    poster = ReferenceField("Poster", null=True)
     year = IntField()
     url = URLField()
     keywords = ListField(ReferenceField("Keyword"))
     country = ReferenceField("Country")
     language = StringField()
     plot = StringField()
-    gross = FloatField(null=True)
+    gross = IntField(null=True)
+    budget = IntField(null=True)
 
     # Does the movie exists
     @staticmethod
@@ -32,6 +33,18 @@ class Movie(Document):
         :return:
         """
         movies = Movie.objects(title=movie_title, year=year)
+        return movies.count() > 0
+    # end exists
+
+    # Does the movie id exists
+    @staticmethod
+    def id_exists(movie_id):
+        """
+        Does a movie ID exists
+        :param movie_id:
+        :return:
+        """
+        movies = Movie.objects(movie_id=movie_id)
         return movies.count() > 0
     # end exists
 

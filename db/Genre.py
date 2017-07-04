@@ -12,6 +12,7 @@ class Genre(Document):
     # Fields
     authors = ListField(ReferenceField("Author"))
     books = ListField(ReferenceField("Book"))
+    movies = ListField(ReferenceField("Movies"))
     name = StringField(required=True, max_length=100)
 
     ###############################################
