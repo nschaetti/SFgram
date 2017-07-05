@@ -17,6 +17,14 @@ from db.Country import Country
 from db.Genre import Genre
 from db.Image import Image
 
+# Download error
+class DownloadErrorException(Exception):
+    """
+    Download error exception
+    """
+    pass
+# end DownloadErrorException
+
 
 # Class to list a Gutenberg category
 class GutenbergBookshelf(object):
@@ -91,6 +99,7 @@ class GutenbergBookshelf(object):
 
         # Save/update each authors
         for book_author in authors:
+            book_author.n_books += 1
             book_author.books.append(new_book)
             book_author.save()
         # end for
@@ -242,52 +251,31 @@ class GutenbergBookshelf(object):
         :param new_book:
         :return:
         """
-        # Control
-        success = False
-        count = 0
-
         # Try
-        while not success:
-            try:
-                # Download
-                ext, data = GutenbergBookshelf.download_http_file(content_url)
+        try:
+            # Download
+            ext, data = GutenbergBookshelf.download_http_file(content_url)
 
-                # Clean content
-                cleaner = TextCleaner()
-                cleaned_text, cleaned = cleaner(data.decode('utf8', errors='ignore'))
-                new_book.cleaned = cleaned
+            # Clean content
+            cleaner = TextCleaner()
+            cleaned_text, cleaned = cleaner(data.decode('utf8', errors='ignore'))
+            new_book.cleaned = cleaned
 
-                # Add  content
-                new_book.content = cleaned_text
-                new_book.content_available = True
+            # Add  content
+            new_book.content = cleaned_text
+            new_book.content_available = True
 
-                # New parser
-                if new_book.language.lower() == u"english":
-                    nlp = spacy.load('en')
-                    words = nlp(cleaned_text)
-                    new_book.content_tokens = len(words)
-                # end if
-
-                # Stop trying
-                success = True
-            except urllib2.HTTPError as e:
-                if e.code == 404 or e.code == 403:
-                    logging.error(u"HTTP Error {} while downloading {}".format(e.code, content_url))
-                    new_book.content_available = False
-                    return
-                # end if
-                pass
-            # end try
-
-            # Count try
-            count += 1
-
-            # Ten max
-            if count >= 10:
-                new_book.content_available = False
-                return
+            # New parser
+            if new_book.language.lower() == u"english":
+                nlp = spacy.load('en')
+                words = nlp(cleaned_text)
+                new_book.content_tokens = len(words)
             # end if
-        # end while
+        except DownloadErrorException as e:
+            logging.fatal(u"Impossible to download {}".format(content_url))
+            new_book.content_available = False
+            pass
+        # end try
     # end download_content
 
     # Download images
@@ -301,7 +289,11 @@ class GutenbergBookshelf(object):
         """
         for url in images_url:
             # Add
-            images.append(GutenbergBookshelf.download_image(url))
+            try:
+                images.append(GutenbergBookshelf.download_image(url))
+            except DownloadErrorException:
+                pass
+            # end try
         # end for
     # end _download_images
 
@@ -387,32 +379,39 @@ class GutenbergBookshelf(object):
             new_book.original_title = wikipedia_info['Original Title']
         # end if
 
-        # Country
+        # Get country
         if 'Country' in wikipedia_info:
-            # Create or get
-            if Country.exists(wikipedia_info['Country']):
-                country = Country.get_by_name(wikipedia_info['Country'])
-            else:
-                # New country
-                country = Country(name=wikipedia_info['Country'])
-                logging.info(u"New country {}".format(country.name))
-            # end if
-
-            # Set country
-            new_book.country = country
-
-            # Add book to country
-            country.books.append(new_book)
-
-            # Add authors to country
-            for book_author in authors:
-                country.authors.append(book_author)
-            # end for
-
-            # Save book
-            logging.debug(u"Saving/updating country {}".format(country.name))
-            country.save()
+            country_name = wikipedia_info['Country']
+        else:
+            country_name = "Unknown"
         # end if
+
+        # Create or get
+        if Country.exists(country_name):
+            country = Country.get_by_name(country_name)
+        else:
+            # New country
+            country = Country(name=country_name)
+            logging.info(u"New country {}".format(country.name))
+        # end if
+
+        # Increments books
+        country.n_books += 1
+
+        # Set country
+        new_book.country = country
+
+        # Add book to country
+        country.books.append(new_book)
+
+        # Add authors to country
+        for book_author in authors:
+            country.authors.append(book_author)
+        # end for
+
+        # Save book
+        logging.debug(u"Saving/updating country {}".format(country.name))
+        country.save()
 
         # Wikipedia information
         new_book.cover_artist = wikipedia_info['Cover artist'] if 'Cover artist' in wikipedia_info else None
@@ -525,7 +524,7 @@ class GutenbergBookshelf(object):
             # Limit
             if count >= 10:
                 logging.fatal(u"Impossible to download {}".format(url))
-                exit()
+                raise DownloadErrorException(u"Impossible to download {}".format(url))
             # end if
         # end while
 

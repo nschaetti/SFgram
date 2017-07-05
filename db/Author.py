@@ -20,6 +20,7 @@ class Author(Document):
     bio = StringField()
     summary = StringField()
     wikipedia_page = URLField()
+    n_books = IntField(default=0)
 
     ###############################################
     # PUBLIC

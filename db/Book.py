@@ -23,7 +23,7 @@ class Book(Document):
     content_available = BooleanField()
     content_tokens = IntField()
     copyright = StringField()
-    country = ReferenceField("Country")
+    country = ReferenceField("Country", default=None)
     cover = ReferenceField("Image")
     covert_art = ReferenceField("Image")
     cover_artist = StringField(max_length=100)
