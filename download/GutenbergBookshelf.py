@@ -485,6 +485,7 @@ class GutenbergBookshelf(object):
         skip = 0
         for book_link in book_links:
             if skip >= self._skip_book:
+                self._skip_book = 0
                 self._books.append(self._parse_book_link(book_link))
             else:
                 skip += 1
