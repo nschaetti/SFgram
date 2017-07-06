@@ -120,7 +120,7 @@ class WikipediaBookInformation(object):
                 pass
             # end try
         # end for
-        return parse(0000-00-00)
+        return parse("2038-01-01")
     # end extract_date
 
     # Get author information
