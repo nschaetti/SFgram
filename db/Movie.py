@@ -64,4 +64,20 @@ class Movie(Document):
         # end if
     # end get_by_title
 
+    # Get movie by id
+    @staticmethod
+    def get_by_id(movie_id):
+        """
+        Get movie by id
+        :param movie_id:
+        :return:
+        """
+        movies = Movie.objects(movie_id=movie_id)
+        if movies.count() > 0:
+            return movies[0]
+        else:
+            return None
+        # end if
+    # end get_by_id
+
 # end Book

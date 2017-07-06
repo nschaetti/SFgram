@@ -17,6 +17,7 @@ from db.Country import Country
 from db.Genre import Genre
 from db.Image import Image
 
+
 # Download error
 class DownloadErrorException(Exception):
     """
@@ -236,7 +237,11 @@ class GutenbergBookshelf(object):
 
         # Covert-art
         if 'Cover-art' in gutenberg_info:
-            new_book.covert_art = GutenbergBookshelf.download_image(gutenberg_info['Cover-art'])
+            try:
+                new_book.covert_art = GutenbergBookshelf.download_image(gutenberg_info['Cover-art'])
+            except DownloadErrorException:
+                pass
+            # end try
         # end if
 
         return new_book
