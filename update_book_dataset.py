@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # For each book
     for index, book in enumerate(gutenberg_con):
         # Registered
-        logging.info(u"Book {} ({}), {} ({}) saved in database".format(book.title, book.publication_date,
+        logging.info(u"Book {} ({}), {} ({}) saved/updated in database".format(book.title, book.publication_date,
                                                                        book.author.name,
                                                                        book.country.name if book.country is not None
                                                                        else ""))
