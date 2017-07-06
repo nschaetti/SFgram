@@ -37,6 +37,7 @@ if __name__ == "__main__":
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
     parser.add_argument("--start-index", type=int, help="Start page index", default=1)
+    parser.add_argument("--skip-book", type=int, help="Number of books to skip", default=0)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 
     # Open category
     gutenberg_con = dw.GutenbergBookshelf()
-    gutenberg_con.open(num=68, start_index=args.start_index)
+    gutenberg_con.open(num=68, start_index=args.start_index, skip_book=args.skip_book)
 
     # GoodReads connector
     goodreads_con = dw.GoodReadsConnector()

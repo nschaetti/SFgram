@@ -2,6 +2,7 @@
 #
 
 # Import
+import re
 import urllib2
 from urllib2 import urlopen
 import logging
@@ -57,7 +58,16 @@ class GutenbergBookInformation(object):
         title_author = soup.find('h1', attrs={'itemprop': u"name"}).text.split(" by ")
         info['#'] = num
         info['Title'] = title_author[0].strip()
-        info['Authors'] = GutenbergBookInformation.parse_authors(title_author[1].strip())
+
+        # Authors
+        if len(title_author) > 1:
+            info['Authors'] = GutenbergBookInformation.parse_authors(title_author[1].strip())
+        else:
+            info['Authors'] = list()
+            for author_link in soup.find_all('a', attrs={'itemprop': u"creator"}):
+                info['Authors'].append(re.search(r"([a-zA-Z\,\s]*)", author_link.text).groups()[0].strip())
+            # end for
+        # end if
 
         # Language
         info['Language'] = soup.find('tr', attrs={'itemprop': u"inLanguage"}).find('td').text.strip()

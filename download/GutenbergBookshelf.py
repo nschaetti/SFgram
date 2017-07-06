@@ -49,7 +49,7 @@ class GutenbergBookshelf(object):
     ####################################################
 
     # Open the category for listing
-    def open(self, num, start_index=1):
+    def open(self, num, start_index=1, skip_book=0):
         """
         Open a category for listing
         :param num: The category number.
@@ -60,6 +60,9 @@ class GutenbergBookshelf(object):
 
         # Start index
         self._start_index = start_index
+
+        # Skip book
+        self._skip_book = skip_book
     # end open
 
     # Next element
@@ -479,8 +482,13 @@ class GutenbergBookshelf(object):
         book_links = soup.find_all('li', attrs={"class": u"booklink"})
 
         # For all book link
+        skip = 0
         for book_link in book_links:
-            self._books.append(self._parse_book_link(book_link))
+            if skip >= self._skip_book:
+                self._books.append(self._parse_book_link(book_link))
+            else:
+                skip += 1
+            # end if
         # end for
 
         # Next page
