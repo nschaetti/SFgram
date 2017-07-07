@@ -6,6 +6,8 @@ import logging
 from mongoengine import *
 import download as dw
 from db.Author import Author
+from db.Country import Country
+from db.Book import Book
 
 ######################################################
 #
@@ -32,12 +34,10 @@ def get_author(author_name):
 if __name__ == "__main__":
 
     # Argument parser
-    parser = argparse.ArgumentParser(description="SFgram - Update the SFGram MongoDB database.")
+    parser = argparse.ArgumentParser(description="SFgram - Check all books with unknown country")
 
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
-    parser.add_argument("--start-index", type=int, help="Start page index", default=1)
-    parser.add_argument("--skip-book", type=int, help="Number of books to skip", default=0)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -48,23 +48,27 @@ if __name__ == "__main__":
     # Connection to MongoDB
     connect(args.database)
 
-    # Open category
-    gutenberg_con = dw.GutenbergBookshelf()
-    gutenberg_con.open(num=68, start_index=args.start_index, skip_book=args.skip_book)
+    # Get Unknown country
+    unknown_country = Country.objects(name="Unknown")[0]
 
-    # GoodReads connector
-    goodreads_con = dw.GoodReadsConnector()
+    # Reinit
+    unknown_country.n_books = len(unknown_country.books)
+
+    # Get books
+    books = unknown_country.books
 
     # For each book
-    for index, book in enumerate(gutenberg_con):
-        # Registered
-        logging.info(u"Book {} ({}), {} ({}) saved/updated in database".format(book.title, book.publication_date,
-                                                                       book.author.name,
-                                                                       book.country.name if book.country is not None
-                                                                       else ""))
+    for book in books:
+        # Display title
+        logging.info("{} by {} ({})".format(book.title, book.author.name, book.country.name))
 
-        # Save book in DB
-        book.save()
+        # If country not unknown
+        if book.country != unknown_country:
+            logging.info("Updateing {}".format(book.title))
+            unknown_country.books.remove(book)
+            unknown_country.n_books -= 1
+            unknown_country.save()
+        # end if
     # end for
 
 # end if

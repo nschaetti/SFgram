@@ -13,6 +13,7 @@ class Country(Document):
 
     # Fields
     authors = ListField(ReferenceField("Author"))
+    n_authors = IntField(default=0)
     books = ListField(ReferenceField("Book"))
     n_books = IntField(default=0)
     name = StringField(required=True, max_length=100)

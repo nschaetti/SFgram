@@ -216,6 +216,7 @@ class WikipediaBookInformation(object):
         try:
             searches = wikipedia.search(title)
         except wikipedia.exceptions.WikipediaException:
+            logging.warning(u"Can't search on Wikipedia, wait for 10 minutes and retry")
             time.sleep(600)
             searches = wikipedia.search(title)
         # end try

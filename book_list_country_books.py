@@ -6,6 +6,8 @@ import logging
 from mongoengine import *
 import download as dw
 from db.Author import Author
+from db.Country import Country
+from db.Book import Book
 
 ######################################################
 #
@@ -32,12 +34,11 @@ def get_author(author_name):
 if __name__ == "__main__":
 
     # Argument parser
-    parser = argparse.ArgumentParser(description="SFgram - Update the SFGram MongoDB database.")
+    parser = argparse.ArgumentParser(description="SFgram - Check all books with unknown country")
 
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
-    parser.add_argument("--start-index", type=int, help="Start page index", default=1)
-    parser.add_argument("--skip-book", type=int, help="Number of books to skip", default=0)
+    parser.add_argument("--country", type=str, help="First country", required=True)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -48,23 +49,11 @@ if __name__ == "__main__":
     # Connection to MongoDB
     connect(args.database)
 
-    # Open category
-    gutenberg_con = dw.GutenbergBookshelf()
-    gutenberg_con.open(num=68, start_index=args.start_index, skip_book=args.skip_book)
+    # First country
+    country = Country.objects(name=args.country)[0]
 
-    # GoodReads connector
-    goodreads_con = dw.GoodReadsConnector()
-
-    # For each book
-    for index, book in enumerate(gutenberg_con):
-        # Registered
-        logging.info(u"Book {} ({}), {} ({}) saved/updated in database".format(book.title, book.publication_date,
-                                                                       book.author.name,
-                                                                       book.country.name if book.country is not None
-                                                                       else ""))
-
-        # Save book in DB
-        book.save()
+    # Add books 1
+    for book in country.books:
+        logging.info(book.title)
     # end for
-
 # end if

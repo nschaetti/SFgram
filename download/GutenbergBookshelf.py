@@ -103,9 +103,11 @@ class GutenbergBookshelf(object):
 
         # Save/update each authors
         for book_author in authors:
-            book_author.n_books += 1
-            book_author.books.append(new_book)
-            book_author.save()
+            if new_book not in book_author.books:
+                book_author.n_books += 1
+                book_author.books.append(new_book)
+                book_author.save()
+            # end if
         # end for
 
         # Gutenberg information
@@ -404,17 +406,20 @@ class GutenbergBookshelf(object):
         # end if
 
         # Increments books
-        country.n_books += 1
+        if new_book not in country.books:
+            country.books.append(new_book)
+            country.n_books += 1
+        # end if
 
         # Set country
         new_book.country = country
 
-        # Add book to country
-        country.books.append(new_book)
-
         # Add authors to country
         for book_author in authors:
-            country.authors.append(book_author)
+            if book_author not in country.authors:
+                country.authors.append(book_author)
+                country.n_authors += 1
+            # end if
         # end for
 
         # Save book
