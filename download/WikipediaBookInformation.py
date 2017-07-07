@@ -22,6 +22,7 @@ import logging
 import wikipedia
 import re
 from dateutil.parser import parse
+import time
 
 
 # Connector for Wikipedia
@@ -210,7 +211,14 @@ class WikipediaBookInformation(object):
 
         # Search for the book on wikipedia
         logging.debug(u"Searching Wikipedia page for {}".format(title + u" " + author))
-        searches = wikipedia.search(title)
+
+        # try
+        try:
+            searches = wikipedia.search(title)
+        except wikipedia.exceptions.WikipediaException:
+            time.sleep(600)
+            searches = wikipedia.search(title)
+        # end try
 
         try:
             # For each response
