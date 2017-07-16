@@ -31,6 +31,10 @@ class ArchiveOrgBookInformation(object):
     Extract book information from arcive.org
     """
 
+    ####################################################
+    # Static
+    ####################################################
+
     @staticmethod
     def get_book_information(page):
         """
