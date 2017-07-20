@@ -27,5 +27,10 @@ import time
 
 # Connector for archive.org
 class ArchiveOrgConnector(object):
-    pass
+    """
+    Connector for archive.org
+    """
+
+
+
 # end

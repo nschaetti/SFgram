@@ -17,12 +17,8 @@
 #
 # Copyright Nils Schaetti, University of Neuchâtel <nils.schaetti@unine.ch>
 
-import bs4 as BeautifulSoup
+import internetarchive
 import logging
-import wikipedia
-import re
-from dateutil.parser import parse
-import time
 
 
 # Extract book information from arcive.org
@@ -36,13 +32,13 @@ class ArchiveOrgBookInformation(object):
     ####################################################
 
     @staticmethod
-    def get_book_information(page):
+    def get_book_information(item_name):
         """
         Get the book information.
-        :param page: Page's URL
-        :return: Array of information.
+        :param item_name: Archive item's name
+        :return: Item object.
         """
-        pass
+        internetarchive.get_item(item_name)
     # end get_book_information
 
 # end
