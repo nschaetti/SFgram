@@ -34,8 +34,15 @@ class ArchiveOrgCollection(object):
         # Properties
         self._collection_name = collection_name
 
-        # Search on archive.org
-        self._results = internetarchive.search_items('collection:{}'.format(collection_name))
+        # Get result
+        self._item_pos = 0
+        self._n_items = 0
+        self._results = internetarchive.search_items('collection:{}'.format(self._collection_name))
+        self._items = list()
+        for result in self._results:
+            self._items.append(result)
+            self._n_items += 1
+        # end for
     # end __init__
 
     ######################################################
@@ -46,14 +53,38 @@ class ArchiveOrgCollection(object):
     # Override
     ######################################################
 
+    # Get item
+    def __getitem__(self, item):
+        """
+        Get item
+        :param item:
+        :return:
+        """
+        return self._items[item]
+    # end __getitem__
+
     # Get iterator
     def __iter__(self):
         """
         Get iterator
         :return: An iterator for the collection
         """
-        return self._results
+        return self
     # end __iter__
+
+    # Next element
+    def next(self):
+        """
+        Next element
+        :return:
+        """
+        if self._item_pos >= self._n_items:
+            self._item_pos = 0
+            raise StopIteration
+        # end if
+        self._item_pos += 1
+        return internetarchive.get_item(self._items[self._item_pos-1][u'identifier'])
+    # end next
 
     ######################################################
     # Private

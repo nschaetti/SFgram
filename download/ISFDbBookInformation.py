@@ -23,6 +23,8 @@ import wikipedia
 import re
 from dateutil.parser import parse
 import time
+from urllib2 import urlopen
+import urllib2
 
 
 # Extract book information from isfdb.org
@@ -32,13 +34,54 @@ class ISFDbBookInformation(object):
     """
 
     @staticmethod
-    def get_book_information(book_id):
+    def get_book_information(book_url):
         """
         Get the book information.
         :param book_id: Book's ID
         :return: Array of information.
         """
-        pass
+        # Dict result
+        result = dict()
+
+        # Get HTML code
+        errors = 0
+        success = False
+        while not success:
+            try:
+                html = urlopen(book_url).read()
+                success = True
+            except urllib2.HTTPError as e:
+                logging.error(u"HTTP error trying to retrieve {} : {}".format(book_url, unicode(e)))
+                errors += 1
+                pass
+            # end try
+            if errors >= 10:
+                logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(book_url))
+                exit()
+                # end if
+        # end while
+
+        # Parse HTML
+        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+
+        # For all header information
+        pub_header = soup.find('td', attrs={'class': u"pubheader"})
+        for li in pub_header.find_all('li'):
+            key = li.find('b').text.strip()[:-1]
+            if key == "Date":
+                value = parse(li.text.replace(key + u":", u"").strip()[:-3])
+            elif key == "Pages":
+                value = int(li.text.replace(key + u":", u"").strip())
+            else:
+                value = li.text.replace(key+u":", u"").replace(u"\n", u" ").strip()
+            # end if
+            result[key] = value
+        # end for
+
+        # Cover
+        result['cover'] = soup.find('tr', attrs={'class': u"scan"}).find('img').attrs['src']
+
+        return result
     # end get_book_information
 
 # end

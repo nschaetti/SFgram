@@ -4,6 +4,7 @@
 import argparse
 import logging
 import download as dw
+from internetarchive import download
 
 ######################################################
 #
@@ -37,6 +38,11 @@ if __name__ == "__main__":
 
     # List items
     for item in collection:
-        print(item)
+        info = dw.ArchiveOrgBookInformation.get_item_information(item)
+        print(info)
+        isfdb_info = dw.ISFDbBookInformation.get_book_information(info['isfdb_link'])
+        print(isfdb_info)
+        print("")
+        #exit()
     # end for
 # end if

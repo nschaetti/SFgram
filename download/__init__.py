@@ -7,3 +7,4 @@ from IMDbMovieConnector import IMDbMovieConnector
 from WikipediaBookInformation import WikipediaBookInformation
 from ArchiveOrgBookInformation import ArchiveOrgBookInformation
 from ArchiveOrgCollection import ArchiveOrgCollection
+from ISFDbBookInformation import ISFDbBookInformation
