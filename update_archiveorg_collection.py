@@ -98,8 +98,6 @@ if __name__ == "__main__":
 
         # If there is text
         if not info['content_error']:
-            print(info.keys())
-            print(isfdb_info.keys())
             # Book's name
             book_title = isfdb_info['Title Reference'] + u" " + isfdb_info['Date'].strftime("(%B)")
 
@@ -114,17 +112,26 @@ if __name__ == "__main__":
 
             # Properties
             book.author = author
+            if book not in author.books:
+                author.books.append(book)
+                author.n_books += 1
+            # end if
             book.publication_date = isfdb_info['Date'].year
 
             # For each authors
             for au in info['authors']:
-                if Author.exists(author_name=info['authors']):
-                    add_author = Author.get_by_name(info['authors'])
+                if Author.exists(author_name=au):
+                    add_author = Author.get_by_name(au)
                 else:
-                    add_author = Author(name=info['authors'])
+                    add_author = Author(name=au)
                     add_author.save()
                 # end if
                 book.authors.append(add_author)
+                if book not in add_author.books:
+                    add_author.books.append(book)
+                    add_author.n_books += 1
+                # end if
+                add_author.save()
             # end for
 
             # Get IA cover image
@@ -140,6 +147,7 @@ if __name__ == "__main__":
 
             # Save
             book.save()
+            author.save()
         # end if
     # end for
 
