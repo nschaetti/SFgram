@@ -10,6 +10,7 @@ from db.Book import Book
 from db.Country import Country
 from db.Genre import Genre
 from db.Image import Image
+from tools.Tools import Tools
 
 ######################################################
 #
@@ -26,6 +27,32 @@ def get_author(author_name):
         return Author(name=author_name)
     # end if
 # end create_author
+
+
+def get_image(image_url):
+    # Get/create image
+    if image_url != "":
+        if not Image.exists(image_url):
+            # New image
+            image = Image()
+
+            # Data
+            ext, data = Tools.download_http_file(image_url)
+
+            # Info
+            image.image.put(data)
+            image.url = image_url
+            image.extension = ext
+
+            # Save
+            image.save()
+        else:
+            image = Image.get_by_url(image_url)
+        # end if
+    # end if
+    return image
+# end get_image
+
 
 ######################################################
 #
@@ -71,6 +98,8 @@ if __name__ == "__main__":
 
         # If there is text
         if not info['content_error']:
+            print(info.keys())
+            print(isfdb_info.keys())
             # Book's name
             book_title = isfdb_info['Title Reference'] + u" " + isfdb_info['Date'].strftime("(%B)")
 
@@ -84,7 +113,19 @@ if __name__ == "__main__":
             # end if
 
             # Properties
+            book.author = author
             book.publication_date = isfdb_info['Date'].year
+
+            # For each authors
+            for au in info
+
+            # Get IA cover image
+            if not info['cover_error']:
+                book.cover = get_image(info['cover_image'])
+            # end if
+
+            # Get ISFDb cover image
+            book.covert_art = get_image(isfdb_info['cover'])
 
             # Content
             book.content = info['content']
