@@ -117,7 +117,15 @@ if __name__ == "__main__":
             book.publication_date = isfdb_info['Date'].year
 
             # For each authors
-            for au in info
+            for au in info['authors']:
+                if Author.exists(author_name=info['authors']):
+                    add_author = Author.get_by_name(info['authors'])
+                else:
+                    add_author = Author(name=info['authors'])
+                    add_author.save()
+                # end if
+                book.authors.append(add_author)
+            # end for
 
             # Get IA cover image
             if not info['cover_error']:
