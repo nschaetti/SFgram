@@ -73,8 +73,16 @@ class ArchiveOrgCollectionInformation(object):
         result['name'] = soup.find('div', attrs={'class': u"welcome-left"}).find('h1').text.strip()
 
         # Get description
-        result['description'] = soup.find('div', attrs={'class': u"about-box"}).text.replace(u"DESCRIPTION",
+        description = soup.find('div', attrs={'class': u"about-box"}).text.replace(u"DESCRIPTION",
                                                                                              u"").strip()
+
+        # Cleaning
+        description = description.replace(u"\n", u" ")
+        description = description.replace(u"\r", u"")
+        description = description.replace(u"  ", u" ")
+        description = description.replace(u"  ", u" ")
+        description = description.replace(u"  ", u" ")
+        result['description'] = description
 
         return result
     # end get_item_information
