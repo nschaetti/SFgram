@@ -66,7 +66,7 @@ class ISFDbBookInformation(object):
 
         # For all header information
         pub_header = soup.find('td', attrs={'class': u"pubheader"})
-        for li in pub_header.find_all('li'):
+        for li in pub_header.find('ul').find_all('li', recursive=False):
             key = li.find('b').text.strip()[:-1]
             if key == "Date":
                 value = parse(li.text.replace(key + u":", u"").strip()[:-3])
