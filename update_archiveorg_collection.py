@@ -3,7 +3,10 @@
 
 import argparse
 import logging
+import time
 from mongoengine import *
+import psutil
+import os
 import download as dw
 from db.Author import Author
 from db.Book import Book
@@ -111,8 +114,15 @@ if __name__ == "__main__":
         author.save()
     # end if
 
+    # Debug
+    pid = os.getpid()
+    py = psutil.Process(pid)
+
     # List items
     for item in collection:
+        # Log
+        logging.debug(u"Memory used 1: {}".format(py.memory_info()[0] / 2. ** 30))
+
         # Get informations
         info = dw.ArchiveOrgBookInformation.get_item_information(item)
         isfdb_info = dw.ISFDbBookInformation.get_book_information(info['isfdb_link'])
@@ -123,53 +133,60 @@ if __name__ == "__main__":
             book_title = isfdb_info['Title Reference'] + u" " + isfdb_info['Date'].strftime("(%B)")
 
             # Create of get book
-            if Book.exists(book_title):
-                book = Book.get_by_title(book_title)
-            else:
+            if not Book.exists(book_title):
                 logging.info(u"New book {}".format(book_title))
                 book = Book(title=book_title)
                 book.save()
-            # end if
 
-            # Properties
-            book.author = author
-            if book not in author.books:
-                author.books.append(book)
-                author.n_books += 1
-            # end if
-            book.publication_date = isfdb_info['Date'].year
+                # Properties
+                book.author = author
+                if book not in author.books:
+                    author.books.append(book)
+                    author.n_books += 1
+                # end if
+                book.publication_date = isfdb_info['Date'].year
 
-            # For each authors
-            for au in info['authors']:
-                if Author.exists(author_name=au):
-                    add_author = Author.get_by_name(au)
-                else:
-                    add_author = Author(name=au)
+                # For each authors
+                for au in info['authors']:
+                    if Author.exists(author_name=au):
+                        add_author = Author.get_by_name(au)
+                    else:
+                        add_author = Author(name=au)
+                        add_author.save()
+                    # end if
+                    book.authors.append(add_author)
+                    if book not in add_author.books:
+                        add_author.books.append(book)
+                        add_author.n_books += 1
+                    # end if
                     add_author.save()
-                # end if
-                book.authors.append(add_author)
-                if book not in add_author.books:
-                    add_author.books.append(book)
-                    add_author.n_books += 1
-                # end if
-                add_author.save()
-            # end for
+                    del add_author
+                # end for
 
-            # Get IA cover image
-            if not info['cover_error']:
-                book.cover = get_image(info['cover_image'], ".jpg")
+                # Get IA cover image
+                if not info['cover_error']:
+                    book.cover = get_image(info['cover_image'], ".jpg")
+                # end if
+
+                # Get ISFDb cover image
+                book.covert_art = get_image(isfdb_info['cover'])
+
+                # Content
+                book.content = info['content']
+
+                # Save
+                book.save()
+                author.save()
+
+                # Delete
+                del book
             # end if
-
-            # Get ISFDb cover image
-            book.covert_art = get_image(isfdb_info['cover'])
-
-            # Content
-            book.content = info['content']
-
-            # Save
-            book.save()
-            author.save()
         # end if
+
+        # Delete info
+        del info
+        del isfdb_info
+        del item
     # end for
 
 # end if
