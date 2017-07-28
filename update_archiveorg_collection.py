@@ -19,7 +19,13 @@ from tools.Tools import Tools
 ######################################################
 
 
+# Get an author
 def get_author(author_name):
+    """
+    Get an author
+    :param author_name:
+    :return:
+    """
     # Check if exists
     if Author.exists(author_name=author_name):
         return Author.get_by_name(author_name)
@@ -29,7 +35,13 @@ def get_author(author_name):
 # end create_author
 
 
+# Get image data
 def get_image(image_url):
+    """
+    Get image data
+    :param image_url:
+    :return:
+    """
     # Get/create image
     if image_url != "":
         if not Image.exists(image_url):
@@ -87,6 +99,7 @@ if __name__ == "__main__":
         author = Author.get_by_name(args.author)
     else:
         author = Author(name=args.author)
+        author.bio = u""
         author.save()
     # end if
 
