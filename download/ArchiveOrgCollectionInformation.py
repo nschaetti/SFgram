@@ -84,6 +84,11 @@ class ArchiveOrgCollectionInformation(object):
         description = description.replace(u"  ", u" ")
         result['description'] = description
 
+        # Delete
+        del html
+        del soup
+        del description
+
         return result
     # end get_item_information
 

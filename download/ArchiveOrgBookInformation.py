@@ -124,6 +124,10 @@ class ArchiveOrgBookInformation(object):
             pass
         # end try
 
+        # Delete
+        del soup
+        del html
+
         return result
     # end get_item_information
 
