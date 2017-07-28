@@ -36,7 +36,7 @@ def get_author(author_name):
 
 
 # Get image data
-def get_image(image_url):
+def get_image(image_url, image_ext=""):
     """
     Get image data
     :param image_url:
@@ -54,7 +54,11 @@ def get_image(image_url):
             # Info
             image.image.put(data)
             image.url = image_url
-            image.extension = ext
+            if image_ext == "":
+                image.extension = ext
+            else:
+                image.extension = image_ext
+            # end if
 
             # Save
             image.save()
@@ -80,7 +84,7 @@ if __name__ == "__main__":
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
     parser.add_argument("--collection", type=str, help="Collection's name", required=True)
-    parser.add_argument("--author", type=str, help="Corresponding author's name", required=True)
+    #parser.add_argument("--author", type=str, help="Corresponding author's name", required=True)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -94,12 +98,16 @@ if __name__ == "__main__":
     # AI collection
     collection = dw.ArchiveOrgCollection(args.collection)
 
+    # Get collection information
+    collection_info = dw.ArchiveOrgCollectionInformation.get_item_information(args.collection)
+
     # Create or get author
-    if Author.exists(author_name=args.author):
-        author = Author.get_by_name(args.author)
+    if Author.exists(author_name=collection_info['name']):
+        author = Author.get_by_name(collection_info['name'])
     else:
-        author = Author(name=args.author)
-        author.bio = u""
+        logging.info(u"New author {}".format(collection_info['name']))
+        author = Author(name=collection_info['name'])
+        author.bio = collection_info['description']
         author.save()
     # end if
 
@@ -149,7 +157,7 @@ if __name__ == "__main__":
 
             # Get IA cover image
             if not info['cover_error']:
-                book.cover = get_image(info['cover_image'])
+                book.cover = get_image(info['cover_image'], ".jpg")
             # end if
 
             # Get ISFDb cover image
