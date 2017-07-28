@@ -96,7 +96,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(name="SFgram")
 
     # Connection to MongoDB
-    connect(args.database)
+    db_client = connect(args.database)
 
     # AI collection
     collection = dw.ArchiveOrgCollection(args.collection)
@@ -114,14 +114,28 @@ if __name__ == "__main__":
         author.save()
     # end if
 
+    # Close
+    db_client.close()
+
     # Debug
     pid = os.getpid()
     py = psutil.Process(pid)
 
+    # No cache
+    Author.objects.no_cache()
+    Book.objects.no_cache()
+    Image.objects.no_cache()
+
+    # Authors books
+    author_books = dict()
+
     # List items
     for item in collection:
+        # Connection to MongoDB
+        db_client = connect(args.database)
+
         # Log
-        logging.debug(u"Memory used 1: {}".format(py.memory_info()[0] / 2. ** 30))
+        logging.debug(u"Memory used: {}".format(py.memory_info()[0] / 2. ** 30))
 
         # Get informations
         info = dw.ArchiveOrgBookInformation.get_item_information(item)
@@ -138,30 +152,38 @@ if __name__ == "__main__":
                 book = Book(title=book_title)
                 book.save()
 
-                # Properties
-                book.author = author
-                if book not in author.books:
-                    author.books.append(book)
-                    author.n_books += 1
-                # end if
-                book.publication_date = isfdb_info['Date'].year
-
                 # For each authors
                 for au in info['authors']:
                     if Author.exists(author_name=au):
                         add_author = Author.get_by_name(au)
                     else:
                         add_author = Author(name=au)
+                        author_books[au] = list()
                         add_author.save()
                     # end if
-                    book.authors.append(add_author)
-                    if book not in add_author.books:
+
+                    # Add book to author's book if needed
+                    """if book.title not in author_books[au]:
                         add_author.books.append(book)
                         add_author.n_books += 1
+                        author_books[au].append(book.title)
+                        add_author.save()
+                    # end if"""
+
+                    # Add author to book's authors
+                    if add_author not in book.authors:
+                        book.authors.append(add_author)
+                        book.save()
                     # end if
-                    add_author.save()
+
                     del add_author
                 # end for
+
+                # Properties
+                book.author = author
+                author.books.append(book)
+                author.n_books += 1
+                book.publication_date = isfdb_info['Date'].year
 
                 # Get IA cover image
                 if not info['cover_error']:
@@ -187,6 +209,15 @@ if __name__ == "__main__":
         del info
         del isfdb_info
         del item
+
+        # Close
+        db_client.close()
+
+        # Check memory
+        if (py.memory_info()[0] / 2. ** 30) > 10.0:
+            logging.error(u"Too much memory... :(")
+            exit()
+        # end if
     # end for
 
 # end if
