@@ -11,6 +11,14 @@ class Author(Document):
     An author in the MongoDB database
     """
 
+    # Indexes
+    meta = {
+        'indexes': [
+            {
+                'fields': ['#name']
+            }]
+    }
+
     # Fields
     ambiguation = BooleanField()
     birth_date = DateTimeField()

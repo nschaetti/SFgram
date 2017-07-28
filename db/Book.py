@@ -11,6 +11,17 @@ class Book(Document):
     A book in the MongoDB database
     """
 
+    # Indexes
+    meta = {
+        'indexes': [
+            {
+                'fields': ['#title']
+            },
+            {
+                'fields': ['#author']
+            }]
+    }
+
     # Fields
     num = IntField()
     ambiguation = BooleanField()

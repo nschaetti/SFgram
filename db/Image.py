@@ -8,6 +8,14 @@ class Image(Document):
     A image in the MongoDB database.
     """
 
+    # Indexes
+    meta = {
+        'indexes': [
+            {
+                'fields': ['#url']
+            }]
+    }
+
     # Fields
     image = FileField()
     url = StringField()
