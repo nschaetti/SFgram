@@ -139,7 +139,11 @@ if __name__ == "__main__":
 
         # Get informations
         info = dw.ArchiveOrgBookInformation.get_item_information(item)
-        isfdb_info = dw.ISFDbBookInformation.get_book_information(info['isfdb_link'])
+        try:
+            isfdb_info = dw.ISFDbBookInformation.get_book_information(info['isfdb_link'])
+        except KeyError:
+            continue
+        # end try
 
         # If there is text
         if not info['content_error']:

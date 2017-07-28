@@ -75,9 +75,13 @@ class ArchiveOrgBookInformation(object):
         # Get author
         result['authors'] = list()
         descript = soup.find('div', attrs={'id': u'descript'})
-        for li in descript.find_all('li'):
-            result['authors'].append(li.text.split(u"by")[1].strip())
-        # end for
+        try:
+            for li in descript.find_all('li'):
+                result['authors'].append(li.text.split(u"by")[1].strip())
+            # end for
+        except AttributeError:
+            pass
+        # end try
 
         # Get cover
         cover_url = cover_url.format(item.server, item.dir, item.identifier, item.identifier, item.identifier)
