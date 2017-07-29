@@ -77,7 +77,11 @@ class ArchiveOrgBookInformation(object):
         descript = soup.find('div', attrs={'id': u'descript'})
         try:
             for li in descript.find_all('li'):
-                result['authors'].append(li.text.split(u"by")[1].strip())
+                try:
+                    result['authors'].append(li.text.split(u"by")[1].strip())
+                except IndexError:
+                    pass
+                # end try
             # end for
         except AttributeError:
             pass
