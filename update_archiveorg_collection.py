@@ -87,7 +87,6 @@ if __name__ == "__main__":
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
     parser.add_argument("--collection", type=str, help="Collection's name", required=True)
-    #parser.add_argument("--author", type=str, help="Corresponding author's name", required=True)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -165,14 +164,6 @@ if __name__ == "__main__":
                         author_books[au] = list()
                         add_author.save()
                     # end if
-
-                    # Add book to author's book if needed
-                    """if book.title not in author_books[au]:
-                        add_author.books.append(book)
-                        add_author.n_books += 1
-                        author_books[au].append(book.title)
-                        add_author.save()
-                    # end if"""
 
                     # Add author to book's authors
                     if add_author not in book.authors:
