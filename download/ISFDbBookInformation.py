@@ -69,7 +69,7 @@ class ISFDbBookInformation(object):
         for li in pub_header.find('ul').find_all('li', recursive=False):
             key = li.find('b').text.strip()[:-1]
             if key == "Date":
-                value = parse(li.text.replace(key + u":", u"").strip()[:-3])
+                value = parse(li.text.replace(key + u":", u"").strip()[:-3] + u"-01")
             elif key == "Pages":
                 value = int(li.text.replace(key + u":", u"").strip())
             else:
