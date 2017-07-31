@@ -14,6 +14,7 @@ from db.Country import Country
 from db.Genre import Genre
 from db.Image import Image
 from tools.Tools import Tools
+import hashlib
 
 ######################################################
 #
@@ -54,17 +55,21 @@ def get_image(image_url, image_ext=""):
             # Data
             ext, data = Tools.download_http_file(image_url)
 
-            # Info
-            image.image.put(data)
-            image.url = image_url
-            if image_ext == "":
-                image.extension = ext
-            else:
-                image.extension = image_ext
-            # end if
+            if hashlib.md5(data).hexdigest() == "25403b9749d2de7454a4f7c0124443b7":
+                # Info
+                image.image.put(data)
+                image.url = image_url
+                if image_ext == "":
+                    image.extension = ext
+                else:
+                    image.extension = image_ext
+                # end if
 
-            # Save
-            image.save()
+                # Save
+                image.save()
+            else:
+                return None
+            # end if
         else:
             image = Image.get_by_url(image_url)
         # end if
@@ -87,7 +92,6 @@ if __name__ == "__main__":
     # Argument
     parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
     parser.add_argument("--collection", type=str, help="Collection's name", required=True)
-    #parser.add_argument("--author", type=str, help="Corresponding author's name", required=True)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
 
@@ -166,14 +170,6 @@ if __name__ == "__main__":
                         add_author.save()
                     # end if
 
-                    # Add book to author's book if needed
-                    """if book.title not in author_books[au]:
-                        add_author.books.append(book)
-                        add_author.n_books += 1
-                        author_books[au].append(book.title)
-                        add_author.save()
-                    # end if"""
-
                     # Add author to book's authors
                     if add_author not in book.authors:
                         book.authors.append(add_author)
@@ -188,10 +184,14 @@ if __name__ == "__main__":
                 author.books.append(book)
                 author.n_books += 1
                 book.publication_date = isfdb_info['Date'].year
+                book.format = "Magazine"
 
                 # Get IA cover image
                 if not info['cover_error']:
-                    book.cover = get_image(info['cover_image'], ".jpg")
+                    cover_image = get_image(info['cover_image'], ".jpg")
+                    if cover_image is not None:
+                        book.cover = get_image(info['cover_image'], ".jpg")
+                    # end if
                 # end if
 
                 # Get ISFDb cover image
