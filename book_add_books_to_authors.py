@@ -40,8 +40,15 @@ if __name__ == "__main__":
 
     # For each authors
     for author in Author.objects():
-        # Print author
-        print(author.name)
+        logging.info(u"Examining author {}...".format(author.name))
+        # For each book
+        for book in Book.objects():
+            if author in book.authors and book not in author.books:
+                logging.info(u"Adding {} to author {}".format(book.title, author.name))
+                author.books.append(book)
+                author.save()
+            # end if
+        # end for
     # end for
 
 # end if
