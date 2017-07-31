@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SFgram - Update the SFGram MongoDB database.")
 
     # Argument
-    parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
+    parser.add_argument("--database", type=str, help="Database name", default="sfgram")
     parser.add_argument("--start-index", type=int, help="Start page index", default=1)
     parser.add_argument("--skip-book", type=int, help="Number of books to skip", default=0)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
