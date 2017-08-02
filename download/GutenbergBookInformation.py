@@ -6,6 +6,7 @@ import re
 import urllib2
 from urllib2 import urlopen
 import logging
+import socket
 import bs4 as BeautifulSoup
 from dateutil.parser import parse
 
@@ -44,6 +45,9 @@ class GutenbergBookInformation(object):
                 logging.error(u"HTTP error trying to retrieve {} : {}".format(ebooks_url, unicode(e)))
                 errors += 1
                 pass
+            except socket.error:
+                logging.error(u"Socket error trying to retrieve {} : {}".format(ebooks_url, unicode(e)))
+                errors += 1
             # end try
             if errors >= 10:
                 logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(ebooks_url))
