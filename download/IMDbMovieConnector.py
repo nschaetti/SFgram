@@ -12,6 +12,7 @@ import imdb
 from dateutil.parser import parse
 import re
 import time
+import socket
 from db.Movie import Movie
 from db.Poster import Poster
 from db.Keyword import Keyword
@@ -91,8 +92,27 @@ class IMDbMovieConnector(object):
         """
         # Load HTML
         logging.debug(u"Downloading page " + url)
-        html = urlopen(url).read()
-        time.sleep(2)
+        errors = 0
+        success = False
+        while not success:
+            try:
+                html = urlopen(url).read()
+                time.sleep(2)
+                success = True
+            except urllib2.HTTPError as e:
+                logging.error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
+                errors += 1
+                pass
+            except socket.timeout as e:
+                logging.error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
+                errors += 1
+                pass
+            # end try
+            if errors >= 10:
+                logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(url))
+                exit()
+            # end if
+        # end while
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
@@ -113,7 +133,28 @@ class IMDbMovieConnector(object):
         """
         # Load HTML
         logging.debug(u"Downloading page " + url)
-        html = urlopen(url).read()
+
+        # Get HTML code
+        errors = 0
+        success = False
+        while not success:
+            try:
+                html = urlopen(url).read()
+                success = True
+            except urllib2.HTTPError as e:
+                logging.error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
+                errors += 1
+                pass
+            except socket.timeout as e:
+                logging.error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
+                errors += 1
+                pass
+            # end try
+            if errors >= 10:
+                logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(url))
+                exit()
+            # end if
+        # end while
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
@@ -167,8 +208,29 @@ class IMDbMovieConnector(object):
 
         # Get HTML
         logging.debug(u"Downloading page " + plot_url)
-        html = urlopen(plot_url).read()
-        time.sleep(2)
+
+        # Get HTML code
+        errors = 0
+        success = False
+        while not success:
+            try:
+                html = urlopen(plot_url).read()
+                time.sleep(2)
+                success = True
+            except urllib2.HTTPError as e:
+                logging.error(u"HTTP error trying to retrieve {} : {}".format(plot_url, unicode(e)))
+                errors += 1
+                pass
+            except socket.timeout as e:
+                logging.error(u"Socket error trying to retrieve {} : {}".format(plot_url, unicode(e)))
+                errors += 1
+                pass
+            # end try
+            if errors >= 10:
+                logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(plot_url))
+                exit()
+            # end if
+        # end while
 
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
@@ -205,7 +267,27 @@ class IMDbMovieConnector(object):
 
         # Get movie HTML
         logging.debug(u"Downloading page " + movie_url)
-        html = urlopen(movie_url).read()
+        # Get HTML code
+        errors = 0
+        success = False
+        while not success:
+            try:
+                html = urlopen(movie_url).read()
+                success = True
+            except urllib2.HTTPError as e:
+                logging.error(u"HTTP error trying to retrieve {} : {}".format(movie_url, unicode(e)))
+                errors += 1
+                pass
+            except socket.timeout as e:
+                logging.error(u"Socket error trying to retrieve {} : {}".format(movie_url, unicode(e)))
+                errors += 1
+                pass
+            # end try
+            if errors >= 10:
+                logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(movie_url))
+                exit()
+            # end if
+        # end while
         time.sleep(2)
 
         # Parse HTML
