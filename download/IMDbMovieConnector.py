@@ -311,6 +311,7 @@ class IMDbMovieConnector(object):
                     budget = int(budget_text.replace(u'$', u'').replace(u',', u''))
                 # end if
             except AttributeError as e:
+                print(e)
                 pass
             # end try
         # end for
@@ -427,9 +428,9 @@ class IMDbMovieConnector(object):
                             # end if
 
                             # Add movie and increment
-                            keyword_object.movies.append(movie)
+                            """keyword_object.movies.append(movie)
                             keyword_object.n_movies += 1
-
+                            print("9.3")"""
                             # Save keyword
                             keyword_object.save()
 
@@ -537,6 +538,7 @@ class IMDbMovieConnector(object):
                 f = urllib2.urlopen(url)
                 success = True
             except urllib2.URLError:
+                logging.debug(u"urllib2.URLError downloading HTTP file {}".format(url))
                 pass
             # end try
 
