@@ -12,12 +12,12 @@ import urllib2
 from dateutil.parser import parse
 from urllib2 import urlopen
 
-import goodreads
 import requests
 import wikipedia
-from goodreads import client
 
+import goodreads
 from cleaning.TextCleaner import TextCleaner
+from goodreads import client
 
 
 # A book

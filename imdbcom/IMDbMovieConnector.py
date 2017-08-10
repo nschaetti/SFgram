@@ -2,21 +2,20 @@
 #
 
 # Import
+import bs4 as BeautifulSoup
+import logging
 import os
-import imdb
+import re
+import socket
+import time
 import urllib2
 from urllib2 import urlopen
-import logging
-import bs4 as BeautifulSoup
+
 import imdb
-from dateutil.parser import parse
-import re
-import time
-import socket
+from db.Country import Country
+from db.Keyword import Keyword
 from db.Movie import Movie
 from db.Poster import Poster
-from db.Keyword import Keyword
-from db.Country import Country
 
 
 # IMDb connector

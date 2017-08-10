@@ -111,6 +111,7 @@ class BookCollection(object):
                 with open(image_filename, 'wb') as f:
                     f.write(data)
                 # end with
+                    break
             # end if
         # end for
         pass
