@@ -12,8 +12,6 @@ class Book(object):
     """
 
     # Fields
-    num = -1
-    ambiguation = False
     author = ""
     authors = list()
     average_rating = -1.0
@@ -25,18 +23,23 @@ class Book(object):
     copyright = ""
     country = list()
     cover = ""
-    covert_art = ""
+    cover_art = ""
+    cover_art_url = ""
     cover_artist = ""
     description = ""
     format = ""
     genres = list()
-    goodreads = {'publication_date': 0, 'url': u"", 'found': False}
+    gutenberg = {'url': u"", 'num': 0}
+    goodreads = {'year': 0, 'url': u"", 'found': False}
+    id = 0
     images = list()
+    images_urls = list()
     ISBN = ""
     ISBN13 = ""
     language = ""
     language_code = ""
     loc_class = ""
+    num = -1
     original_title = ""
     pages = 0
     publication_date = 0
@@ -46,7 +49,8 @@ class Book(object):
     small_image = ""
     summary = ""
     title = ""
-    wikipedia = {'publication_year': 0, 'url': u"", 'found': False}
+    wikipedia = {'year': 0, 'ambiguation': False, 'url': u"", 'found': False}
+    year = 0
 
     ####################################################
     # Static

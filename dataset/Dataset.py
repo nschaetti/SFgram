@@ -1,38 +1,55 @@
 # -*- coding: utf-8 -*-
 #
 
+# Imports
+import os
 
-# A collection of book in the dataset
-class BookCollection(object):
+
+# A dataset
+class Dataset(object):
     """
-    A collection of book in the dataset
+    A dataset
     """
 
-    _next_book_id = 0
+    # Properties
+    _directories = ["books_covers", "books_cover_arts", "books_images", "books_small_images", "books_contents"]
+
+    # Constructor
+    def __init__(self, dataset_dir):
+        """
+        Constructor
+        :param dataset_dir:
+        """
+        self._dataset_directory = dataset_dir
+    # end __init__
 
     ####################################################
     # Public
     ####################################################
 
-    # Add a book
-    def add(self, book):
+    # Check dataset directories
+    def check_directories(self):
         """
-        Add a book
-        :param book:
+        Check dataset directories
+        :param dataset_dir:
         :return:
         """
-        # Next id
-        self._next_book_id += 1
+        # Check each dir
+        for directory in self._directories:
+            if not os.path.exists(os.path.join(self._dataset_directory, directory)):
+                os.mkdir(os.path.join(self._dataset_directory, directory))
+            # end if
+        # end for
     # end add
 
-    # Get next book id
-    def get_next_book_id(self):
+    # Get book covers directory
+    def get_book_covers_directory(self):
         """
-        Get next book
+        Get book covers directory
         :return:
         """
-        return self._next_book_id
-    # end get_next_book_id
+        return os.path.join(self._dataset_directory, self._directories[0])
+    # end get_book_covers_directory
 
     ####################################################
     # Static
