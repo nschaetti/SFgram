@@ -3,12 +3,8 @@
 
 # Import
 import re
-import urllib2
-from urllib2 import urlopen
-import logging
-import socket
-import bs4 as BeautifulSoup
 from dateutil.parser import parse
+from tools.Tools import Tools
 
 
 # Access to Gutenberg book information
@@ -31,32 +27,8 @@ class GutenbergBookInformation(object):
         # Result
         info = dict()
 
-        # Control variable
-        success = False
-        errors = 0
-        html = ""
-
-        # Try until done
-        while not success:
-            try:
-                html = urlopen(ebooks_url).read()
-                success = True
-            except urllib2.HTTPError as e:
-                logging.error(u"HTTP error trying to retrieve {} : {}".format(ebooks_url, unicode(e)))
-                errors += 1
-                pass
-            except socket.error:
-                logging.error(u"Socket error trying to retrieve {} : {}".format(ebooks_url, unicode(e)))
-                errors += 1
-            # end try
-            if errors >= 10:
-                logging.fatal(u"Fatal HTTP error trying to retrieve {}".format(ebooks_url))
-                exit()
-            # end if
-        # end while
-
-        # Parse HTML
-        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+        # Download HTML page
+        soup = Tools.download_html(ebooks_url)
 
         # Find title and author
         title_author = soup.find('h1', attrs={'itemprop': u"name"}).text.split(" by ")
@@ -170,33 +142,8 @@ class GutenbergBookInformation(object):
         # Results
         result = list()
 
-        # Control
-        success = False
-        count = 0
-
-        # Load HTML
-        while not success:
-            try:
-                html = urlopen(http_directory).read()
-                success = True
-            except urllib2.HTTPError as e:
-                if e.code == 404 or e.code == 403:
-                    return result
-                # end if
-                pass
-            # end try
-
-            # Count
-            count += 1
-
-            # Max
-            if count >= 10:
-                return result
-            # end if
-        # end while
-
-        # Parse HTML
-        soup = BeautifulSoup.BeautifulSoup(html, "lxml")
+        # Download HTTP file
+        soup = Tools.download_html(files_url)
 
         # For each file entry
         for file_entry in soup.find_all('tr'):
