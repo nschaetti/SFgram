@@ -19,10 +19,11 @@
 
 import bs4 as BeautifulSoup
 import logging
-import wikipedia
 import re
-from dateutil.parser import parse
 import time
+from dateutil.parser import parse
+
+import wikipedia
 
 
 # Connector for Wikipedia
@@ -51,7 +52,7 @@ class WikipediaBookInformation(object):
                 field_header = row.find('th')
                 if field_header is not None and "colspan" not in field_header.attrs:
                     try:
-                        field_name = row.find('th').text.strip()
+                        field_name = row.find('th').text.lower().strip().replace(u" ", u"-")
                         field_value = row.find('td').text.strip()
                         result[field_name] = field_value
                     except AttributeError:
@@ -133,7 +134,7 @@ class WikipediaBookInformation(object):
         :return:
         """
         # Info
-        info = {'wikipedia_found': False, 'Ambiguation': False}
+        info = {'found': False, 'ambiguation': False}
 
         # Search for the book on wikipedia
         logging.debug(u"Searching Wikipedia page for {}".format(author_name))
@@ -152,7 +153,7 @@ class WikipediaBookInformation(object):
 
                         # Born
                         if "Born" in wiki_info:
-                            info['Born'] = WikipediaBookInformation.extract_date(wiki_info['Born'])
+                            info['born'] = WikipediaBookInformation.extract_date(wiki_info['born'])
                         # end if
 
                         # Died
@@ -207,16 +208,16 @@ class WikipediaBookInformation(object):
         :return:
         """
         # Info
-        info = {'wikipedia_found': False, 'Ambiguation': False}
+        info = {'found': False}
 
         # Search for the book on wikipedia
-        logging.debug(u"Searching Wikipedia page for {}".format(title + u" " + author))
+        logging.getLogger(u"SFGram").debug(u"Searching Wikipedia page for {}".format(title + u" " + author))
 
         # try
         try:
             searches = wikipedia.search(title)
         except wikipedia.exceptions.WikipediaException:
-            logging.warning(u"Can't search on Wikipedia, wait for 10 minutes and retry")
+            logging.getLogger(u"SFGram").warning(u"Can't search on Wikipedia, wait for 10 minutes and retry")
             time.sleep(600)
             searches = wikipedia.search(title)
         # end try
@@ -236,35 +237,35 @@ class WikipediaBookInformation(object):
                         if u"Published" in wiki_info or u"Published in" in wiki_info or u"Publication date" in wiki_info:
 
                             # Country
-                            if 'Country' in wiki_info:
-                                info['Country'] = wiki_info['Country']
+                            if 'country' in wiki_info:
+                                info['country'] = wiki_info['country']
                             # end if
 
                             # Original title
-                            info['Original Title'] = page.original_title
+                            info['original-title'] = page.original_title
 
                             # Image
                             try:
-                                info['Images'] = WikipediaBookInformation.filter_wikipedia_images(page.images)
+                                info['images'] = WikipediaBookInformation.filter_wikipedia_images(page.images)
                             except KeyError:
-                                info['Images'] = []
+                                info['images'] = []
                                 pass
                             # end try
 
                             # Find plot
                             for section in ("Plot", "Plot summary", "Synopsis"):
                                 if page.section(section) is not None:
-                                    info['Plot'] = unicode(page.section(section))
+                                    info['plot'] = unicode(page.section(section))
                                 # end if
                             # end for
 
                             # Summary
-                            info['Summary'] = page.summary
-                            info['wikipedia_url'] = page.url
+                            info['summary'] = page.summary
+                            info['url'] = page.url
 
                             # Cover artist
                             if u'Cover\u00a0artist' in wiki_info:
-                                info['Cover artist'] = wiki_info[u'Cover\u00a0artist']
+                                info['cover-artist'] = wiki_info[u'Cover\u00a0artist']
                             # end if
 
                             # Publication date
@@ -272,20 +273,20 @@ class WikipediaBookInformation(object):
 
                             # If found
                             if publication_date != -1:
-                                info['Publication date'] = WikipediaBookInformation.extract_publication_date(wiki_info)
+                                info['publication-date'] = WikipediaBookInformation.extract_publication_date(wiki_info)
                             # end if
 
                             # Publisher
                             if u'Publisher' in wiki_info:
-                                info['Publisher'] = wiki_info[u'Publisher']
+                                info['publisher'] = wiki_info[u'Publisher']
                             # end if
 
                             # Published in
-                            info['Published in'] = wiki_info[u'Published in']\
+                            info['published-in'] = wiki_info[u'Published in']\
                                 if u'Published in' in wiki_info else None
 
                             # End
-                            info['wikipedia_found'] = True
+                            info['found'] = True
                             break
                         # end if
                     except wikipedia.exceptions.DisambiguationError:

@@ -79,7 +79,7 @@ class Tools(object):
             try:
                 logging.debug(u"Downloading HTTP file {}".format(url))
                 f = urllib2.urlopen(url)
-                return ext, f.read()
+                return f.read(), ext
             except urllib2.HTTPError as e:
                 logging.getLogger(u"SFGram").error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
