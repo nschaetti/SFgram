@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 #
 
+# Imports
+import os
+import logging
+
 
 # A collection of book in the dataset
 class BookCollection(object):
@@ -75,13 +79,40 @@ class BookCollection(object):
 
     # Save image
     @staticmethod
-    def save_image(data, ext):
+    def save_image(directory, book_id, data, ext):
         """
         Save image
+        :param directory:
+        :param book_id:
         :param data:
         :param ext:
         :return:
         """
+        # Extensions
+        extensions = [".png", ".jpg", ".jpeg", ".gif"]
+
+        # Find an index
+        for i in range(1000):
+            # Filename
+            filename = u"book" + str(book_id) + u"-" + str(i)
+
+            # Check no image file exists
+            exists = False
+            for ex in extensions:
+                if os.path.exists(os.path.join(directory, filename + ex)):
+                    exists = True
+                # end if
+            # end for
+
+            # No image exists
+            if not exists:
+                image_filename = os.path.join(directory, filename + ext)
+                logging.getLogger(u"SFGram").info(u"New book image at {}".format(image_filename))
+                with open(image_filename, 'wb') as f:
+                    f.write(data)
+                # end with
+            # end if
+        # end for
         pass
     # end save_image
 
