@@ -17,14 +17,16 @@
 #
 # Copyright Nils Schaetti, University of Neuchâtel <nils.schaetti@unine.ch>
 
-from urllib2 import urlopen
 import bs4 as BeautifulSoup
 import logging
-from requests.utils import quote
-from goodreads import client
-import goodreads
-import requests
 import time
+from urllib2 import urlopen
+
+import requests
+from requests.utils import quote
+
+import goodreads
+from goodreads import client
 
 
 # Connector for GoodReads
@@ -73,14 +75,14 @@ class GoodReadsConnector(object):
         :return:
         """
         # Result
-        info = {'goodreads_found': True}
+        info = {'found': True}
 
         # Goodreads client
         goodreads_client = client.GoodreadsClient("3H4jhs695dsDscTWMjKmw",
                                                   "IGxF8r6Gg4FWPCQlPBpwkmQU2nZJWa6ZXCDRW7FtT5c")
 
         # Empty genre list
-        info['Genres'] = list()
+        info['genres'] = list()
 
         # Search books
         ok = False
@@ -122,56 +124,56 @@ class GoodReadsConnector(object):
         # end for
 
         # Get informations
-        info['ISBN13'] = book.isbn13
-        info['ISBN'] = book.isbn
-        info['Similar Books'] = list()
-        info['Cover'] = book.image_url
-        info['Small Image'] = book.small_image_url
-        info['Goodreads URL'] = book.link
-        info['Description'] = book.description
+        info['isbn13'] = book.isbn13
+        info['isbn'] = book.isbn
+        info['similar-books'] = list()
+        info['cover'] = book.image_url
+        info['small-image'] = book.small_image_url
+        info['url'] = book.link
+        info['description'] = book.description
 
         # Book rating
         if book.average_rating is not None:
-            info['Average Rating'] = float(book.average_rating)
+            info['average-rating'] = float(book.average_rating)
         # end if
 
         # Language code
-        info['Language Code'] = book.language_code
+        info['language-code'] = book.language_code
 
         # Book rating
         if book.ratings_count is not None:
-            info['Rating Count'] = int(book.ratings_count)
+            info['rating-count'] = int(book.ratings_count)
         # end if
 
         # Number of pages
         if book.num_pages is not None:
-            info['Pages'] = int(book.num_pages)
+            info['pages'] = int(book.num_pages)
         # end if
 
         # Book format
-        info['Format'] = book.format
+        info['format'] = book.format
 
         # Publication date
         if '#text' in book.work['original_publication_year']:
-            info['Publication date'] = int(book.work['original_publication_year']['#text'])
+            info['publication-date'] = int(book.work['original_publication_year']['#text'])
         # end if
 
         # Similar books
         try:
             for b in book.similar_books:
-                info['Similar Books'].append(b.title)
+                info['similar-books'].append(b.title)
             # end for
         except KeyError:
-            info['Similar Books'] = list()
+            info['similar-Books'] = list()
         # end try
 
         # Genres
         try:
             for shelf in book.popular_shelves:
-                info['Genres'].append(shelf.name)
+                info['genres'].append(shelf.name)
             # end
         except TypeError:
-            info['Similar Books'] = list()
+            info['genres'] = list()
         # end try
 
         return info
