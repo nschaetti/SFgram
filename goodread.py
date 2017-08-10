@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 
-import numpy as np
 import argparse
-import logging
-import pygame
-import pygame.camera
-import time
-import Image
-import pytesseract
+
 from goodreads import client
 
 ######################################################

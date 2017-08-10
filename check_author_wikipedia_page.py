@@ -3,14 +3,13 @@
 
 import argparse
 import logging
-from mongoengine import *
-import download as dw
-from db.Author import Author
-from db.Country import Country
-from db.Book import Book
-from db.Movie import Movie
-import wikipedia
 from dateutil.parser import parse
+
+from mongoengine import *
+
+import download as dw
+import wikipedia
+from db.Author import Author
 
 ######################################################
 #

@@ -3,8 +3,8 @@
 
 import argparse
 import logging
+
 import download as dw
-from internetarchive import download
 
 ######################################################
 #
