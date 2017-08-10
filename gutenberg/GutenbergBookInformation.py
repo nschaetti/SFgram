@@ -33,52 +33,52 @@ class GutenbergBookInformation(object):
         # Find title and author
         title_author = soup.find('h1', attrs={'itemprop': u"name"}).text.split(" by ")
         info['#'] = num
-        info['Title'] = title_author[0].strip()
+        info['title'] = title_author[0].strip()
 
         # Authors
         if len(title_author) > 1:
-            info['Authors'] = GutenbergBookInformation.parse_authors(title_author[1].strip())
+            info['authors'] = GutenbergBookInformation.parse_authors(title_author[1].strip())
         else:
-            info['Authors'] = list()
+            info['authors'] = list()
             for author_link in soup.find_all('a', attrs={'itemprop': u"creator"}):
-                info['Authors'].append(re.search(r"([a-zA-Z\,\s]*)", author_link.text).groups()[0].strip())
+                info['authors'].append(re.search(r"([a-zA-Z\,\s]*)", author_link.text).groups()[0].strip())
             # end for
         # end if
 
         # Language
-        info['Language'] = soup.find('tr', attrs={'itemprop': u"inLanguage"}).find('td').text.strip()
+        info['language'] = soup.find('tr', attrs={'itemprop': u"inLanguage"}).find('td').text.strip()
 
         # LoC class
         try:
-            info['LoC Class'] = soup.find('tr', attrs={'datatype': u"dcterms:LCC"}).find('td').find(
+            info['loc-class'] = soup.find('tr', attrs={'datatype': u"dcterms:LCC"}).find('td').find(
                 'a').text.strip()
         except AttributeError:
-            info['LoC Class'] = ""
+            info['loc-class'] = ""
         # end try
 
         # Empty list of genres
-        info['Genres'] = list()
+        info['genres'] = list()
 
         # Filter and add subject
         for subject in soup.find_all('td', attrs={'datatype': u"dcterms:LCSH"}):
             filtered_subject = GutenbergBookInformation.filter_subjects(subject.find('a').text.strip().split(" -- ")[0])
             if filtered_subject is not None:
-                info['Genres'].append(filtered_subject.title())
+                info['genres'].append(filtered_subject.title())
             # end if
         # end for
 
         # Category
-        info['Category'] = soup.find('td', attrs={'property': u"dcterms:type"}).text.strip()
+        info['category'] = soup.find('td', attrs={'property': u"dcterms:type"}).text.strip()
 
         # Release date
-        info['Release Date'] = parse(
+        info['release-date'] = parse(
             soup.find('td', attrs={'itemprop': u"datePublished"}).text.strip()).isoformat()
 
         # Copyright
-        info['Copyright'] = soup.find('td', attrs={'property': u"dcterms:rights"}).text.strip()
+        info['copyright'] = soup.find('td', attrs={'property': u"dcterms:rights"}).text.strip()
 
         # Images
-        info['Images'] = GutenbergBookInformation.explore_http_directory(files_url.format(num))
+        info['images-urls'] = GutenbergBookInformation.explore_http_directory(files_url.format(num))
 
         # Cover art
         img_cover_art = soup.find('img', attrs={'class': u"cover-art"})
@@ -92,7 +92,7 @@ class GutenbergBookInformation(object):
             # end if
 
             # Save
-            info['Cover-art'] = cover_art_url
+            info['cover-art-url'] = cover_art_url
         # end if
 
         return info
@@ -136,14 +136,11 @@ class GutenbergBookInformation(object):
         :param http_directory:
         :return:
         """
-        # Images URL
-        files_url = u"http://www.gutenberg.org/files/{}/"
-
         # Results
         result = list()
 
         # Download HTTP file
-        soup = Tools.download_html(files_url)
+        soup = Tools.download_html(http_directory)
 
         # For each file entry
         for file_entry in soup.find_all('tr'):

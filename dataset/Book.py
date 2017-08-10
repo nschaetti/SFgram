@@ -5,7 +5,7 @@
 import datetime
 
 
-# A book in the MongoDB database
+# A book in the dataset
 class Book(object):
     """
     A book in the dataset

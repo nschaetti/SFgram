@@ -33,6 +33,7 @@ class GutenbergBookshelf(object):
         Constructor
         """
         self._url = u"http://www.gutenberg.org/ebooks/bookshelf/"
+        self._plaintext_url = u"http://www.gutenberg.org/ebooks/{}.txt.utf-8"
         self._start_index = 1
         self._step = 25
         self._books = list()
@@ -81,20 +82,20 @@ class GutenbergBookshelf(object):
         book_informations = GutenbergBookInformation.get_book_info(book_url)
 
         # Get images
-        book_informations['images'] = GutenbergBookshelf.download_images(book_informations['Images'])
+        book_informations['images'] = GutenbergBookshelf.download_images(book_informations['images-urls'])
 
         # Get content
         try:
             # Download HTTP
-            content_ext, content_data = Tools.download_http_file(book_informations['#'])
+            content_ext, content_data = Tools.download_http_file(self._plaintext_url.format(book_informations['#']))
 
             # Clean content
             cleaned_content, cleaned = GutenbergBookshelf.clean_content(content_data)
 
             # Save
             book_informations['content'] = cleaned_content
-            book_informations['content_extension'] = content_ext
-            book_informations['content_cleaned'] = cleaned
+            book_informations['content-extension'] = content_ext
+            book_informations['content-cleaned'] = cleaned
         except DownloadErrorException as e:
             logging.getLogger(u"SFGram").error(
                 u"Error downloading book content {} : {}".format(book_informations['title'], e))
@@ -104,11 +105,13 @@ class GutenbergBookshelf(object):
         # Get cover art
         try:
             # Download HTTP file
-            cover_art_ext, cover_art_data = Tools.download_http_file(book_informations['Cover-art'])
+            cover_art_ext, cover_art_data = Tools.download_http_file(book_informations['cover-art-url'])
 
             # Save
-            book_informations['cover_art'] = cover_art_data
-            book_informations['cover_art_extension'] = cover_art_ext
+            book_informations['cover-art'] = cover_art_data
+            book_informations['cover-art-extension'] = cover_art_ext
+        except KeyError:
+            pass
         except DownloadErrorException as e:
             logging.getLogger(u"SFGram").error(
                 u"Error downloading book cover art for {} : {}".format(book_informations['title'], e))
@@ -141,7 +144,7 @@ class GutenbergBookshelf(object):
         Load the elements of the current page.
         """
         # URL
-        book_url = u"Downloading page {}?start_index={}".format(self._url, self._start_index)
+        book_url = u"{}?start_index={}".format(self._url, self._start_index)
 
         # Get and parse HTML
         try:

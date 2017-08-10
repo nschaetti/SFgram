@@ -40,15 +40,15 @@ class Tools(object):
         # Try downloading
         while errors < limit:
             try:
-                logging.debug(u"Downloading HTML page {}".format(url))
+                logging.getLogger(u"SFGram").debug(u"Downloading HTML page {}".format(url))
                 html = urlopen(url).read()
-                return BeautifulSoup.BeautifulSoup(html, "html")
+                return BeautifulSoup.BeautifulSoup(html, "lxml")
             except urllib2.HTTPError as e:
-                logging.error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
+                logging.getLogger(u"SFGram").error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
                 pass
             except socket.error as e:
-                logging.error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
+                logging.getLogger(u"SFGram").error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
                 pass
             # end try
@@ -81,11 +81,11 @@ class Tools(object):
                 f = urllib2.urlopen(url)
                 return ext, f.read()
             except urllib2.HTTPError as e:
-                logging.error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
+                logging.getLogger(u"SFGram").error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
                 pass
             except socket.error as e:
-                logging.error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
+                logging.getLogger(u"SFGram").error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
             # end try
             errors += 1
