@@ -68,7 +68,7 @@ class Tools(object):
         :return: Content
         """
         # Get ext
-        ext = os.path.splitext(url.split("/")[-1])[1]
+        name = url.split("/")[-1]
 
         # Control
         errors = 0
@@ -77,9 +77,9 @@ class Tools(object):
         # Try
         while errors < limit:
             try:
-                logging.debug(u"Downloading HTTP file {}".format(url))
+                logging.getLogger(u"SFGram").debug(u"Downloading HTTP file {}".format(url))
                 f = urllib2.urlopen(url)
-                return f.read(), ext
+                return f.read(), name
             except urllib2.HTTPError as e:
                 logging.getLogger(u"SFGram").error(u"HTTP error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
