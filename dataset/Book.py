@@ -2,7 +2,6 @@
 #
 
 # Imports
-import datetime
 
 
 # A book in the dataset
@@ -12,7 +11,7 @@ class Book(object):
     """
 
     # Fields
-    author = ""
+    author = None
     authors = list()
     average_rating = -1.0
     category = ""
@@ -52,25 +51,17 @@ class Book(object):
     wikipedia = {'year': 0, 'ambiguation': False, 'url': u"", 'found': False}
     year = 0
 
-    ####################################################
-    # Static
-    ####################################################
-
-    # Does the book exists
-    @staticmethod
-    def exists(book_title):
-        pass
-    # end exists
-
-    # Get book from title
-    @staticmethod
-    def get_by_title(book_title):
+    # Constructor
+    def __init__(self):
         """
-        Get book from its title
-        :param book_title:
-        :return:
+        Constructor
         """
-        pass
-    # end get_by_title
+        self.authors = list()
+        self.country = list()
+        self.genres = list()
+        self.images = list()
+        self.images_urls = list()
+        self.similar_books = list()
+    # end __init__
 
 # end Book

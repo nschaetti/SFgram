@@ -12,7 +12,7 @@ class Dataset(object):
     """
 
     # Properties
-    _directories = ["book_covers", "book_cover_arts", "book_images", "book_small_images", "book_contents"]
+    _directories = ["book-covers", "book-images", "book-contents", "books", "authors"]
 
     # Constructor
     def __init__(self, dataset_dir):
@@ -42,6 +42,15 @@ class Dataset(object):
         # end for
     # end add
 
+    # Get dataset directory
+    def get_dataset_directory(self):
+        """
+        Get dataset directory
+        :return:
+        """
+        return self._dataset_directory
+    # end get_dataset_directory
+
     # Get book covers directory
     def get_book_covers_directory(self):
         """
@@ -49,15 +58,6 @@ class Dataset(object):
         :return:
         """
         return os.path.join(self._dataset_directory, self._directories[0])
-    # end get_book_covers_directory
-
-    # Get book cover arts directory
-    def get_book_cover_arts_directory(self):
-        """
-        Get book covers directory
-        :return:
-        """
-        return os.path.join(self._dataset_directory, self._directories[1])
     # end get_book_covers_directory
 
     # Get book images directory
