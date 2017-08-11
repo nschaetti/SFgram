@@ -22,7 +22,7 @@ import logging
 import re
 import time
 from dateutil.parser import parse
-
+from tools.Tools import Tools
 import wikipedia
 
 
@@ -40,7 +40,7 @@ class WikipediaBookInformation(object):
         # Result
         result = dict()
 
-        # Parse HTML
+        # Get HTML page
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
 
         # Get infobox table
@@ -134,7 +134,7 @@ class WikipediaBookInformation(object):
         :return:
         """
         # Info
-        info = {'found': False, 'ambiguation': False}
+        info = {'found': False}
 
         # Search for the book on wikipedia
         logging.debug(u"Searching Wikipedia page for {}".format(author_name))
@@ -152,42 +152,42 @@ class WikipediaBookInformation(object):
                         wiki_info = WikipediaBookInformation.get_infobox(page.html())
 
                         # Born
-                        if "Born" in wiki_info:
+                        if "born" in wiki_info:
                             info['born'] = WikipediaBookInformation.extract_date(wiki_info['born'])
                         # end if
 
                         # Died
-                        if "Died" in wiki_info:
-                            info['Died'] = WikipediaBookInformation.extract_date(wiki_info['Died'])
+                        if "died" in wiki_info:
+                            info['died'] = WikipediaBookInformation.extract_date(wiki_info['died'])
                         # end if
 
                         # Death
-                        if "Death" in wiki_info:
-                            info['Died'] = WikipediaBookInformation.extract_date(wiki_info['Death'])
+                        if "death" in wiki_info:
+                            info['died'] = WikipediaBookInformation.extract_date(wiki_info['death'])
                         # end if
 
                         # Summary
-                        info['Summary'] = page.summary
+                        info['summary'] = page.summary
 
                         # Find biography
                         for section in ("Life", "Early life", "Career", "Personal life", "Death", "Biography"):
                             if page.section(section) is not None:
-                                if 'Bio' not in info:
-                                    info['Bio'] = unicode(page.section(section))
+                                if 'bio' not in info:
+                                    info['bio'] = unicode(page.section(section))
                                 else:
-                                    info['Bio'] += u" " + unicode(page.section(section))
+                                    info['bio'] += u" " + unicode(page.section(section))
                                 # end if
                             # end if
                         # end for
 
                         # Page
-                        info['URL'] = page.url
+                        info['url'] = page.url
 
                         # End
-                        info['wikipedia_found'] = True
+                        info['found'] = True
                         break
                     except wikipedia.exceptions.DisambiguationError:
-                        info['Ambiguation'] = True
+                        info['ambiguation'] = True
                         logging.warning(u"Disambiguation error for page {}".format(page_title))
                         pass
                     # end try
@@ -211,7 +211,7 @@ class WikipediaBookInformation(object):
         info = {'found': False}
 
         # Search for the book on wikipedia
-        logging.getLogger(u"SFGram").debug(u"Searching Wikipedia page for {}".format(title + u" " + author))
+        logging.getLogger(u"SFGram").info(u"Searching Wikipedia page for {}".format(title + u" " + author))
 
         # try
         try:
@@ -234,8 +234,7 @@ class WikipediaBookInformation(object):
                         wiki_info = WikipediaBookInformation.get_infobox(page.html())
 
                         # Try to get the published date
-                        if u"Published" in wiki_info or u"Published in" in wiki_info or u"Publication date" in wiki_info:
-
+                        if u"published" in wiki_info or u"published-in" in wiki_info or u"publication-date" in wiki_info:
                             # Country
                             if 'country' in wiki_info:
                                 info['country'] = wiki_info['country']
@@ -245,10 +244,13 @@ class WikipediaBookInformation(object):
                             info['original-title'] = page.original_title
 
                             # Image
+                            info['images'] = list()
                             try:
-                                info['images'] = WikipediaBookInformation.filter_wikipedia_images(page.images)
+                                img_urls = WikipediaBookInformation.filter_wikipedia_images(page.images)
+                                for url in img_urls:
+                                    info['images'].append(Tools.download_http_file(url))
+                                # end for
                             except KeyError:
-                                info['images'] = []
                                 pass
                             # end try
 
@@ -273,7 +275,7 @@ class WikipediaBookInformation(object):
 
                             # If found
                             if publication_date != -1:
-                                info['publication-date'] = WikipediaBookInformation.extract_publication_date(wiki_info)
+                                info['publication-year'] = WikipediaBookInformation.extract_publication_date(wiki_info)
                             # end if
 
                             # Publisher
@@ -285,20 +287,26 @@ class WikipediaBookInformation(object):
                             info['published-in'] = wiki_info[u'Published in']\
                                 if u'Published in' in wiki_info else None
 
-                            # End
+                            # Found
                             info['found'] = True
+                            logging.getLogger(u"SFGram").info(u"Wikipedia page found at {}".format(page.url))
                             break
                         # end if
                     except wikipedia.exceptions.DisambiguationError:
-                        info['Ambiguation'] = True
-                        logging.warning(u"Disambiguation error for page {}".format(page_title))
+                        info['ambiguation'] = True
+                        logging.getLogger(u"SFGram").warning(u"Disambiguation error for page {}".format(page_title))
                         pass
                     # end try
                 # end if
             # end for
-        except wikipedia.exceptions.PageError:
-            logging.error(u"Cannot find Wikipedia page for {}".format(title))
+        except wikipedia.exceptions.PageError as e:
+            logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {} : {}".format(title, e))
         # end try
+
+        # Not found
+        if not info['found']:
+            logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {}".format(title))
+        # end if
 
         return info
     # end get_book_information
