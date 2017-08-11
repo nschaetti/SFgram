@@ -21,12 +21,11 @@ import bs4 as BeautifulSoup
 import logging
 import time
 from urllib2 import urlopen
-
 import requests
 from requests.utils import quote
-
 import goodreads
 from goodreads import client
+from tools.Tools import Tools
 
 
 # Connector for GoodReads
@@ -75,7 +74,7 @@ class GoodReadsConnector(object):
         :return:
         """
         # Result
-        info = {'found': True}
+        info = {'found': False}
 
         # Goodreads client
         goodreads_client = client.GoodreadsClient("3H4jhs695dsDscTWMjKmw",
@@ -102,14 +101,14 @@ class GoodReadsConnector(object):
                 # Continue
                 ok = True
             except goodreads.request.GoodreadsRequestException:
-                logging.getLogger(name="SFGram").warning("Error when retrieving information from Goodreads for {}"
+                logging.getLogger(name=u"SFGram").warning(u"Error when retrieving information from Goodreads for {}"
                                                          .format(title))
                 # end if
                 time.sleep(10)
                 pass
             except TypeError:
-                logging.getLogger(name="SFGram").warning("Book \"{}\" not found on GoodReads".format(title))
-                info['goodreads_found'] = False
+                logging.getLogger(name=u"SFGram").warning(u"Book \"{}\" not found on GoodReads".format(title))
+                info['found'] = False
                 return info
             # end try
         # end while
@@ -128,7 +127,7 @@ class GoodReadsConnector(object):
         info['isbn'] = book.isbn
         info['similar-books'] = list()
         info['cover'] = book.image_url
-        info['small-image'] = book.small_image_url
+        info['small-image'] = Tools.download_http_file(book.small_image_url)
         info['url'] = book.link
         info['description'] = book.description
 
@@ -155,7 +154,7 @@ class GoodReadsConnector(object):
 
         # Publication date
         if '#text' in book.work['original_publication_year']:
-            info['publication-date'] = int(book.work['original_publication_year']['#text'])
+            info['publication-year'] = int(book.work['original_publication_year']['#text'])
         # end if
 
         # Similar books
@@ -175,6 +174,10 @@ class GoodReadsConnector(object):
         except TypeError:
             info['genres'] = list()
         # end try
+
+        # Found
+        info['found'] = True
+        logging.getLogger(name=u"SFGram").info(u"Goodreads page found at {}".format(book.link))
 
         return info
     # end get_book_information
