@@ -4,18 +4,9 @@
 import logging
 from GutenbergBookInformation import GutenbergBookInformation
 from cleaning.TextCleaner import TextCleaner
-from tools.Tools import Tools
+from tools.Tools import Tools, DownloadErrorException
 import spacy
 from dataset.Book import Book
-
-
-# Download error
-class DownloadErrorException(Exception):
-    """
-    Download error exception
-    """
-    pass
-# end DownloadErrorException
 
 
 # Class to list a Gutenberg category
@@ -87,29 +78,27 @@ class GutenbergBookshelf(object):
         # Get content
         try:
             # Download HTTP
-            content_ext, content_data = Tools.download_http_file(self._plaintext_url.format(book_informations['#']))
+            content_data, content_name = Tools.download_http_file(self._plaintext_url.format(book_informations['#']))
 
             # Clean content
             cleaned_content, cleaned = GutenbergBookshelf.clean_content(content_data)
 
             # Save
             book_informations['content'] = cleaned_content
-            book_informations['content-extension'] = content_ext
+            book_informations['content-name'] = content_name
             book_informations['content-cleaned'] = cleaned
+            book_informations['content-available'] = True
         except DownloadErrorException as e:
             logging.getLogger(u"SFGram").error(
                 u"Error downloading book content {} : {}".format(book_informations['title'], e))
+            book_informations['content-available'] = False
             pass
         # end try
 
         # Get cover art
         try:
             # Download HTTP file
-            cover_art_ext, cover_art_data = Tools.download_http_file(book_informations['cover-art-url'])
-
-            # Save
-            book_informations['cover-art'] = cover_art_data
-            book_informations['cover-art-extension'] = cover_art_ext
+            book_informations['cover'] = Tools.download_http_file(book_informations['cover-art-url'])
         except KeyError:
             pass
         except DownloadErrorException as e:
@@ -148,6 +137,7 @@ class GutenbergBookshelf(object):
 
         # Get and parse HTML
         try:
+            logging.getLogger(u"SFGram").info(u"Get HTML page {}".format(book_url))
             soup = Tools.download_html(book_url)
         except DownloadErrorException:
             logging.getLogger(u"SFGram").fatal(u"Can't get HTML page {}".format(book_url))

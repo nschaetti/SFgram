@@ -5,6 +5,7 @@
 import re
 from dateutil.parser import parse
 from tools.Tools import Tools
+import logging
 
 
 # Access to Gutenberg book information
@@ -28,6 +29,7 @@ class GutenbergBookInformation(object):
         info = dict()
 
         # Download HTML page
+        logging.getLogger(u"SFGram").info(u"Gutenberg page found at {}".format(ebooks_url))
         soup = Tools.download_html(ebooks_url)
 
         # Find title and author
