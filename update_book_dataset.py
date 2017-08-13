@@ -30,9 +30,15 @@ def create_author(author_name):
 
     # Infos
     if author_infos['found']:
-        author.bio = author_infos['bio']
-        author.birth_date = author_infos['born']
-        author.death_date = author_infos['died']
+        if 'bio' in author_infos.keys():
+            author.bio = author_infos['bio']
+        # end if
+        if 'born' in author_infos.keys():
+            author.birth_date = author_infos['born']
+        # end if
+        if 'died' in author_infos.keys():
+            author.death_date = author_infos['died']
+        # end if
         author.summary = author_infos['summary']
         author.wikipedia['found'] = True
         author.wikipedia['url'] = author_infos['url']
