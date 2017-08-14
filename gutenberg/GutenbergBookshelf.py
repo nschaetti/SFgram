@@ -73,25 +73,25 @@ class GutenbergBookshelf(object):
         book_informations = GutenbergBookInformation.get_book_info(book_url)
 
         # Get images
-        book_informations['images'] = GutenbergBookshelf.download_images(book_informations['images-urls'])
+        book_informations['images'] = GutenbergBookshelf.download_images(book_informations['images_urls'])
 
         # Get content
         try:
             # Download HTTP
-            content_data, content_name = Tools.download_http_file(self._plaintext_url.format(book_informations['#']))
+            content_data, content_name = Tools.download_http_file(self._plaintext_url.format(book_informations['gutenberg']['num']))
 
             # Clean content
             cleaned_content, cleaned = GutenbergBookshelf.clean_content(content_data)
 
             # Save
             book_informations['content'] = cleaned_content
-            book_informations['content-name'] = content_name
-            book_informations['content-cleaned'] = cleaned
-            book_informations['content-available'] = True
+            book_informations['content_name'] = content_name
+            book_informations['content_cleaned'] = cleaned
+            book_informations['content_available'] = True
         except DownloadErrorException as e:
             logging.getLogger(u"SFGram").error(
                 u"Error downloading book content {} : {}".format(book_informations['title'], e))
-            book_informations['content-available'] = False
+            book_informations['content_available'] = False
             pass
         # end try
 

@@ -26,7 +26,7 @@ class GutenbergBookInformation(object):
         files_url = u"http://www.gutenberg.org/files/{}/"
 
         # Result
-        info = dict()
+        info = {'gutenberg': dict()}
 
         # Download HTML page
         logging.getLogger(u"SFGram").info(u"Gutenberg page found at {}".format(ebooks_url))
@@ -34,8 +34,11 @@ class GutenbergBookInformation(object):
 
         # Find title and author
         title_author = soup.find('h1', attrs={'itemprop': u"name"}).text.split(" by ")
-        info['#'] = num
+        info['gutenberg']['num'] = num
         info['title'] = title_author[0].strip()
+
+        # URL
+        info['gutenberg']['url'] = ebooks_url
 
         # Authors
         if len(title_author) > 1:
@@ -52,10 +55,10 @@ class GutenbergBookInformation(object):
 
         # LoC class
         try:
-            info['loc-class'] = soup.find('tr', attrs={'datatype': u"dcterms:LCC"}).find('td').find(
+            info['loc_class'] = soup.find('tr', attrs={'datatype': u"dcterms:LCC"}).find('td').find(
                 'a').text.strip()
         except AttributeError:
-            info['loc-class'] = ""
+            info['loc_class'] = ""
         # end try
 
         # Empty list of genres
@@ -73,14 +76,14 @@ class GutenbergBookInformation(object):
         info['category'] = soup.find('td', attrs={'property': u"dcterms:type"}).text.strip()
 
         # Release date
-        info['release-date'] = parse(
+        info['release_date'] = parse(
             soup.find('td', attrs={'itemprop': u"datePublished"}).text.strip()).isoformat()
 
         # Copyright
         info['copyright'] = soup.find('td', attrs={'property': u"dcterms:rights"}).text.strip()
 
         # Images
-        info['images-urls'] = GutenbergBookInformation.explore_http_directory(files_url.format(num))
+        info['images_urls'] = GutenbergBookInformation.explore_http_directory(files_url.format(num))
 
         # Cover art
         img_cover_art = soup.find('img', attrs={'class': u"cover-art"})
@@ -94,7 +97,7 @@ class GutenbergBookInformation(object):
             # end if
 
             # Save
-            info['cover-art-url'] = cover_art_url
+            info['cover_art_url'] = cover_art_url
         # end if
 
         return info
