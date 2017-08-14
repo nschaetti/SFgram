@@ -74,14 +74,14 @@ class GoodReadsConnector(object):
         :return:
         """
         # Result
-        info = {'found': False}
+        info = {'goodreads': {'found': False}}
 
         # Goodreads client
         goodreads_client = client.GoodreadsClient("3H4jhs695dsDscTWMjKmw",
                                                   "IGxF8r6Gg4FWPCQlPBpwkmQU2nZJWa6ZXCDRW7FtT5c")
 
         # Empty genre list
-        info['genres'] = list()
+        info['classes'] = list()
 
         # Search books
         ok = False
@@ -108,7 +108,7 @@ class GoodReadsConnector(object):
                 pass
             except TypeError:
                 logging.getLogger(name=u"SFGram").warning(u"Book \"{}\" not found on GoodReads".format(title))
-                info['found'] = False
+                info['goodreads']['found'] = False
                 return info
             # end try
         # end while
@@ -125,23 +125,23 @@ class GoodReadsConnector(object):
         # Get informations
         info['isbn13'] = book.isbn13
         info['isbn'] = book.isbn
-        info['similar-books'] = list()
+        info['similar_books'] = list()
         info['cover'] = book.image_url
-        info['small-image'] = Tools.download_http_file(book.small_image_url)
-        info['url'] = book.link
+        info['small_image'] = Tools.download_http_file(book.small_image_url)
+        info['goodreads']['url'] = book.link
         info['description'] = book.description
 
         # Book rating
         if book.average_rating is not None:
-            info['average-rating'] = float(book.average_rating)
+            info['average_rating'] = float(book.average_rating)
         # end if
 
         # Language code
-        info['language-code'] = book.language_code
+        info['language_code'] = book.language_code
 
         # Book rating
         if book.ratings_count is not None:
-            info['rating-count'] = int(book.ratings_count)
+            info['rating_count'] = int(book.ratings_count)
         # end if
 
         # Number of pages
@@ -154,29 +154,31 @@ class GoodReadsConnector(object):
 
         # Publication date
         if '#text' in book.work['original_publication_year']:
-            info['publication-year'] = int(book.work['original_publication_year']['#text'])
+            info['goodreads']['year'] = int(book.work['original_publication_year']['#text'])
+        else:
+            info['goodreads']['year'] = -1
         # end if
 
         # Similar books
         try:
             for b in book.similar_books:
-                info['similar-books'].append(b.title)
+                info['similar_books'].append(b.title)
             # end for
         except KeyError:
-            info['similar-Books'] = list()
+            info['similar_books'] = list()
         # end try
 
         # Genres
         try:
             for shelf in book.popular_shelves:
-                info['genres'].append(shelf.name)
+                info['classes'].append(shelf.name)
             # end
         except TypeError:
-            info['genres'] = list()
+            info['classes'] = list()
         # end try
 
         # Found
-        info['found'] = True
+        info['goodreads']['found'] = True
         logging.getLogger(name=u"SFGram").info(u"Goodreads page found at {}".format(book.link))
 
         return info
