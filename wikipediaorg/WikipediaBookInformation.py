@@ -134,7 +134,7 @@ class WikipediaBookInformation(object):
         :return:
         """
         # Info
-        info = {'found': False}
+        info = {'wikipedia': {'found': False}}
 
         # Search for the book on wikipedia
         logging.debug(u"Searching Wikipedia page for {}".format(author_name))
@@ -181,20 +181,19 @@ class WikipediaBookInformation(object):
                         # end for
 
                         # Page
-                        info['url'] = page.url
+                        info['wikipedia']['url'] = page.url
 
                         # End
-                        info['found'] = True
+                        info['wikipedia']['found'] = True
                         break
                     except wikipedia.exceptions.DisambiguationError:
-                        info['ambiguation'] = True
                         logging.warning(u"Disambiguation error for page {}".format(page_title))
                         pass
                     # end try
                 # end if
             # end for
         except wikipedia.exceptions.PageError:
-            logging.error(u"Cannot find Wikipedia page for {}".format(title))
+            logging.error(u"Cannot find Wikipedia page for {}".format(author_name))
         # end try
 
         return info
@@ -208,7 +207,7 @@ class WikipediaBookInformation(object):
         :return:
         """
         # Info
-        info = {'found': False}
+        info = {'wikipedia': {'found': False}}
 
         # Search for the book on wikipedia
         logging.getLogger(u"SFGram").info(u"Searching Wikipedia page for {}".format(title + u" " + author))
@@ -241,7 +240,7 @@ class WikipediaBookInformation(object):
                             # end if
 
                             # Original title
-                            info['original-title'] = page.original_title
+                            info['original_title'] = page.original_title
 
                             # Image
                             info['images'] = list()
@@ -263,11 +262,11 @@ class WikipediaBookInformation(object):
 
                             # Summary
                             info['summary'] = page.summary
-                            info['url'] = page.url
+                            info['wikipedia']['url'] = page.url
 
                             # Cover artist
                             if u'Cover\u00a0artist' in wiki_info:
-                                info['cover-artist'] = wiki_info[u'Cover\u00a0artist']
+                                info['cover_artist'] = wiki_info[u'Cover\u00a0artist']
                             # end if
 
                             # Publication date
@@ -275,7 +274,9 @@ class WikipediaBookInformation(object):
 
                             # If found
                             if publication_date != -1:
-                                info['publication-year'] = WikipediaBookInformation.extract_publication_date(wiki_info)
+                                info['wikipedia']['year'] = WikipediaBookInformation.extract_publication_date(wiki_info)
+                            else:
+                                info['wikipedia']['year'] = -1
                             # end if
 
                             # Publisher
@@ -284,16 +285,15 @@ class WikipediaBookInformation(object):
                             # end if
 
                             # Published in
-                            info['published-in'] = wiki_info[u'Published in']\
+                            info['published_in'] = wiki_info[u'Published in']\
                                 if u'Published in' in wiki_info else None
 
                             # Found
-                            info['found'] = True
+                            info['wikipedia']['found'] = True
                             logging.getLogger(u"SFGram").info(u"Wikipedia page found at {}".format(page.url))
                             break
                         # end if
                     except wikipedia.exceptions.DisambiguationError:
-                        info['ambiguation'] = True
                         logging.getLogger(u"SFGram").warning(u"Disambiguation error for page {}".format(page_title))
                         pass
                     # end try
@@ -304,7 +304,7 @@ class WikipediaBookInformation(object):
         # end try
 
         # Not found
-        if not info['found']:
+        if not info['wikipedia']['found']:
             logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {}".format(title))
         # end if
 
