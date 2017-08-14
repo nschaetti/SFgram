@@ -20,7 +20,7 @@ class Book(object):
     content_available = False
     content_tokens = 0
     copyright = ""
-    country = list()
+    country = 0
     cover = ""
     cover_art = ""
     cover_art_url = ""
@@ -29,7 +29,7 @@ class Book(object):
     format = ""
     genres = list()
     gutenberg = {'url': u"", 'num': 0}
-    goodreads = {'year': 0, 'url': u"", 'found': False}
+    goodreads = {'year': -1, 'url': u"", 'found': False}
     id = 0
     images = list()
     images_urls = list()
@@ -39,6 +39,7 @@ class Book(object):
     language_code = ""
     loc_class = ""
     num = -1
+    n_authors = 0
     original_title = ""
     pages = 0
     publication_date = 0
@@ -48,7 +49,7 @@ class Book(object):
     small_image = ""
     summary = ""
     title = ""
-    wikipedia = {'year': 0, 'ambiguation': False, 'url': u"", 'found': False}
+    wikipedia = {'year': -1, 'ambiguation': False, 'url': u"", 'found': False}
     year = 0
 
     # Constructor
@@ -63,5 +64,32 @@ class Book(object):
         self.images_urls = list()
         self.similar_books = list()
     # end __init__
+
+    ############################################
+    # Public
+    ############################################
+
+    # Import properties from dictionary
+    def import_from_dict(self, dict_var, exclude=[]):
+        """
+        Import properties from dictionary
+        :param dict_var: Dictionary to import
+        :param exclude: Key to exclude
+        """
+        # For each dict's key
+        for key in dict_var.keys():
+            if key not in exclude:
+                setattr(self, key, dict_var[key])
+            # end if
+        # end for
+    # end import_from_dict
+
+    ############################################
+    # Private
+    ############################################
+
+    ############################################
+    # Static
+    ############################################
 
 # end Book

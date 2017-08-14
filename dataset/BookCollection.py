@@ -5,6 +5,7 @@
 import os
 import logging
 import pickle
+import json
 from .Book import Book
 from .Author import Author
 
@@ -124,6 +125,7 @@ class BookCollection(object):
         """
         # Collection file
         collection_filename = os.path.join(dataset_directory, filename)
+        collection_json_filename = os.path.join(dataset_directory, directory + ".json")
 
         # Collection directory
         collection_directory = os.path.join(dataset_directory, directory)
@@ -136,12 +138,25 @@ class BookCollection(object):
             pickle.dump(d, f)
         # end with
 
+        # Save JSON
+        """with open(collection_json_filename, 'w') as f:
+            json.dump(d, f, indent=4)
+        # end with"""
+
         # For each book
         for element in d:
             element_filename = os.path.join(collection_directory, directory + unicode(element.id).zfill(5) + ".p")
+            element_json_filename = os.path.join(collection_directory, directory + unicode(element.id).zfill(5) + ".json")
+
+            # Save Pickle
             with open(element_filename, 'wb') as f:
                 pickle.dump(element, f)
-                # end with
+            # end with
+
+            # Save JSON
+            """with open(element_json_filename, 'w') as f:
+                json.dump(element, f, indent=4)
+            # end with"""
         # end for
     # end _save_dict
 
@@ -165,7 +180,7 @@ class BookCollection(object):
 
         # Load
         with open(collection_filename, 'rb') as f:
-            return pickle.load(collection_filename)
+            return pickle.load(collection_filename, f)
         # end with
     # end load
 
