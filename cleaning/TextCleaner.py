@@ -59,11 +59,12 @@ class TextCleaner(SFGCleaner):
             # end for
 
             # Join
-            joined_text = u' '.join(result)
+            joined_text = u'\n'.join(result)
 
             # Remove useless character
             joined_text = joined_text.replace(u"\r", u" ")              # No \r
-            joined_text = joined_text.replace(u"\n", u" ")              # No newline
+            joined_text = joined_text.replace(u"\n\n", u"\n")           # No newline
+            joined_text = joined_text.replace(u"\n\n", u"\n")           # No newline
             joined_text = joined_text.replace(u"\t", u" ")              # No tab
             joined_text = joined_text.replace(u"  ", u" ")              # Double space
             joined_text = joined_text.replace(u"   ", u" ")             # Triple space
