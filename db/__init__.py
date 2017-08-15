@@ -6,3 +6,4 @@ from .Author import Author
 from .Book import Book
 from .Country import Country
 from .Genre import Genre
+from .DBObject import DBObject

@@ -23,6 +23,7 @@ class Book(Document):
     }
 
     # Fields
+    id = IntField()
     num = IntField()
     ambiguation = BooleanField()
     author = ReferenceField("Author")

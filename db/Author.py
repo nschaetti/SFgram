@@ -2,11 +2,11 @@
 #
 
 from mongoengine import *
-from .Book import Book
+from DBObject import DBObject
 
 
 # An author in the MongoDB database
-class Author(Document):
+class Author(DBObject):
     """
     An author in the MongoDB database
     """
@@ -20,6 +20,7 @@ class Author(Document):
     }
 
     # Fields
+    id = IntField()
     ambiguation = BooleanField()
     birth_date = DateTimeField()
     death_date = DateTimeField()
