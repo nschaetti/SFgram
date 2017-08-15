@@ -92,7 +92,15 @@ class GoodReadsConnector(object):
                     try:
                         books = goodreads_client.search_books(title)
                         success = True
-                    except requests.exceptions.ConnectionError:
+                    except requests.exceptions.SSLError as e:
+                        logging.getLogger(u"SFGram").error(
+                            u"Connection error searching for {} on Goodreads : {}".format(title, e))
+                        time.sleep(60)
+                        pass
+                    # end try
+                    except requests.exceptions.ConnectionError as e:
+                        logging.getLogger(u"SFGram").error(
+                            u"Connection error searching for {} on Goodreads : {}".format(title, e))
                         time.sleep(60)
                         pass
                     # end try
