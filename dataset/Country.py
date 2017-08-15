@@ -48,6 +48,21 @@ class Country(object):
         # end for
     # end import_from_dict
 
+    # To dictionary
+    def to_dict(self):
+        """
+
+        :return:
+        """
+        result = dict()
+        obj_dict = self.__dict__
+        for key in obj_dict.keys():
+            if obj_dict[key] is not None:
+                result[key] = obj_dict[key]
+        # end if
+        return result
+    # end to_dict
+
     ############################################
     # Private
     ############################################

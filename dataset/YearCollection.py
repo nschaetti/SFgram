@@ -20,11 +20,12 @@ class YearCollection(object):
     _n_year = 0
 
     # Constructor
-    def __init__(self):
+    def __init__(self, years=list()):
         """
         Constructor
         """
-        self._years = list()
+        self._years = years
+        self._n_years = len(years)
     # end if
 
     ####################################################
@@ -60,6 +61,7 @@ class YearCollection(object):
 
                 # Add
                 self._years.append(year)
+                self._n_years += 1
             # end if
         else:
             return self.get_year(year.year)
@@ -91,7 +93,7 @@ class YearCollection(object):
         :return:
         """
         # Save books
-        self._save_dict(self._years, dataset_directory, "year.p")
+        self._save_dict(self._years, dataset_directory, "years.p")
     # end save
 
     ####################################################
@@ -109,6 +111,7 @@ class YearCollection(object):
         """
         # Collection file
         collection_filename = os.path.join(dataset_directory, filename)
+        collection_json_filename = os.path.join(dataset_directory, "years.json")
 
         # Log
         logging.getLogger(u"SFGram").info(u"Saving country collection to {}".format(collection_filename))
@@ -116,6 +119,11 @@ class YearCollection(object):
         # Save
         with open(collection_filename, 'wb') as f:
             pickle.dump(d, f)
+        # end with
+
+        # Save
+        with open(collection_json_filename, 'wb') as f:
+            json.dump(self.to_dict(), f, indent=4)
         # end with
     # end _save_dict
 
@@ -132,15 +140,32 @@ class YearCollection(object):
         :return:
         """
         # Collection file
-        collection_filename = os.path.join(dataset_directory, "year.p")
+        collection_filename = os.path.join(dataset_directory, "years.p")
 
         # Log
-        logging.getLogger(u"SFGram").info(u"Loading country collection from {}".format(collection_filename))
+        logging.getLogger(u"SFGram").info(u"Loading year collection from {}".format(collection_filename))
 
         # Load
         with open(collection_filename, 'rb') as f:
-            return pickle.load(collection_filename, f)
+            return pickle.load(f)
         # end with
     # end load
+
+    # To dictionary
+    def to_dict(self):
+        """
+        To dictionary
+        :return:
+        """
+        result = dict()
+
+        # Countries
+        result['years'] = list()
+        for year in self._years:
+            result['years'].append(year.to_dict())
+        # end for
+
+        return result
+    # end to_dict
 
 # end Book

@@ -20,16 +20,39 @@ class CountryCollection(object):
     _n_country = 0
 
     # Constructor
-    def __init__(self):
+    def __init__(self, countries=list()):
         """
         Constructor
+        :param books: Books
+        :param authors: Authors
         """
-        self._countries = list()
-    # end if
+        self._countries = countries
+        self._n_country = len(countries)
+
+        # Search next country id
+        self._next_country_id = self._get_next_id(countries)
+    # end __init__
 
     ####################################################
     # Public
     ####################################################
+
+    # Get next id
+    def _get_next_id(self, collection):
+        """
+        Get next id
+        :param collection:
+        :return:
+        """
+        # Search next id
+        max_id = 0
+        for element in collection:
+            if element.id > max_id:
+                max_id = element.id
+                # end if
+        # end for
+        return max_id
+    # end _get_next_id
 
     # Exists
     def exists(self, country):
@@ -63,6 +86,7 @@ class CountryCollection(object):
 
                 # Add
                 self._countries.append(country)
+                self._n_country += 1
 
                 # Next id
                 self._next_country_id += 1
@@ -106,7 +130,7 @@ class CountryCollection(object):
         :return:
         """
         # Save books
-        self._save_dict(self._countries, dataset_directory, "country.p")
+        self._save_dict(self._countries, dataset_directory, "countries.p")
     # end save
 
     ####################################################
@@ -124,6 +148,7 @@ class CountryCollection(object):
         """
         # Collection file
         collection_filename = os.path.join(dataset_directory, filename)
+        collection_json_filename = os.path.join(dataset_directory, "countries.json")
 
         # Log
         logging.getLogger(u"SFGram").info(u"Saving country collection to {}".format(collection_filename))
@@ -132,11 +157,50 @@ class CountryCollection(object):
         with open(collection_filename, 'wb') as f:
             pickle.dump(d, f)
         # end with
+
+        # Save
+        with open(collection_json_filename, 'wb') as f:
+            json.dump(self.to_dict(), f, indent=4)
+        # end with
     # end _save_dict
+
+    # To dictionary
+    def to_dict(self):
+        """
+        To dictionary
+        :return:
+        """
+        result = dict()
+
+        # Countries
+        result['countries'] = list()
+        for country in self._countries:
+            result['countries'].append(country.to_dict())
+        # end for
+
+        return result
+    # end to_dict
 
     ####################################################
     # Static
     ####################################################
+
+    # Create collection
+    @staticmethod
+    def create(dataset_directory):
+        """
+        Create or load the collection
+        :param dataset_directory:
+        :return:
+        """
+        # Load or create book collection
+        if os.path.exists(os.path.join(dataset_directory, "countries.p")):
+            books, authors = CountryCollection.load(dataset_directory)
+            return CountryCollection(books=books)
+        else:
+            return CountryCollection()
+        # end if
+    # end create
 
     # Load book collection
     @staticmethod
@@ -147,14 +211,14 @@ class CountryCollection(object):
         :return:
         """
         # Collection file
-        collection_filename = os.path.join(dataset_directory, "year.p")
+        collection_filename = os.path.join(dataset_directory, "countries.p")
 
         # Log
         logging.getLogger(u"SFGram").info(u"Loading country collection from {}".format(collection_filename))
 
         # Load
         with open(collection_filename, 'rb') as f:
-            return pickle.load(collection_filename, f)
+            return pickle.load(f)
         # end with
     # end load
 

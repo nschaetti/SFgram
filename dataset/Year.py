@@ -11,7 +11,7 @@ class Year(object):
     """
 
     # Fields
-    year = 0
+    year = -1
     books = list()
     n_books = 0
     movies = list()
@@ -23,7 +23,6 @@ class Year(object):
         Constructor
         """
         self.year = year
-        self.authors = list()
         self.books = list()
         self.movies = list()
     # end __init__
@@ -46,6 +45,21 @@ class Year(object):
             # end if
         # end for
     # end import_from_dict
+
+    # To dictionary
+    def to_dict(self):
+        """
+
+        :return:
+        """
+        result = dict()
+        obj_dict = self.__dict__
+        for key in obj_dict.keys():
+            if obj_dict[key] is not None:
+                result[key] = obj_dict[key]
+        # end if
+        return result
+    # end to_dict
 
     ############################################
     # Private

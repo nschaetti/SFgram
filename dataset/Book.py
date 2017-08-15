@@ -2,6 +2,7 @@
 #
 
 # Imports
+import datetime
 
 
 # A book in the dataset
@@ -53,10 +54,11 @@ class Book(object):
     year = 0
 
     # Constructor
-    def __init__(self):
+    def __init__(self, title):
         """
         Constructor
         """
+        self.title = title
         self.authors = list()
         self.country = list()
         self.genres = list()
@@ -83,6 +85,25 @@ class Book(object):
             # end if
         # end for
     # end import_from_dict
+
+    # To dictionary
+    def to_dict(self):
+        """
+        To dictionary
+        :return:
+        """
+        result = dict()
+        obj_dict = self.__dict__
+        for key in obj_dict.keys():
+            if obj_dict[key] is not None:
+                if type(obj_dict[key]) is datetime.datetime:
+                    result[key] = str(obj_dict[key])
+                else:
+                    result[key] = obj_dict[key]
+            # end if
+        # end if
+        return result
+    # end to_dict
 
     ############################################
     # Private

@@ -5,9 +5,11 @@
 import os
 import logging
 import pickle
+import datetime
 import json
 from .Book import Book
 from .Author import Author
+from outputs.JsonEncoder import JsonEncoder
 
 
 # A collection of book in the dataset
@@ -20,6 +22,21 @@ class BookCollection(object):
     _next_author_id = 0
     _books = list()
     _authors = list()
+
+    # Constructor
+    def __init__(self, books=list(), authors=list()):
+        """
+        Constructor
+        :param books: Books
+        :param authors: Authors
+        """
+        self._books = books
+        self._authors = authors
+
+        # Search next book/author id
+        self._next_book_id = self._get_next_id(books)
+        self._next_author_id = self._get_next_id(authors)
+    # end __init__
 
     ####################################################
     # Public
@@ -82,10 +99,46 @@ class BookCollection(object):
                 # Next id
                 self._next_author_id += 1
             # end if
+        else:
+            if type(element) is Book:
+                return self.get_book_by_title(element.title)
+            else:
+                return self.get_author_by_name(element.name)
+            # end if
         # end if
 
         return element
     # end add
+
+    # Get book by title
+    def get_book_by_title(self, title):
+        """
+        Get country by name
+        :param title:
+        :return:
+        """
+        for book in self._books:
+            if book.title == title:
+                return book
+                # end if
+        # end for
+        return None
+    # end get_by_name
+
+    # Get author by name
+    def get_author_by_name(self, name):
+        """
+        Get country by name
+        :param name:
+        :return:
+        """
+        for author in self._authors:
+            if author.name == name:
+                return author
+            # end if
+        # end for
+        return None
+    # end get_by_name
 
     # Get next book id
     def get_next_book_id(self):
@@ -110,9 +163,50 @@ class BookCollection(object):
         self._save_dict(self._authors, dataset_directory, "authors.p", "authors")
     # end save
 
+    # To dictionary
+    def to_dict(self, collection_type):
+        """
+        To dictionary
+        :return:
+        """
+        result = dict()
+
+        # Collection
+        if collection_type == 'books':
+            collection = self._books
+        else:
+            collection = self._authors
+        # end if
+
+        # Books
+        result[collection_type] = list()
+        for element in collection:
+            result[collection_type].append(element.to_dict())
+        # end for
+
+        return result
+    # end to_dict
+
     ####################################################
     # Static
     ####################################################
+
+    # Get next id
+    def _get_next_id(self, collection):
+        """
+        Get next id
+        :param collection:
+        :return:
+        """
+        # Search next id
+        max_id = 0
+        for element in collection:
+            if element.id > max_id:
+                max_id = element.id
+                # end if
+        # end for
+        return max_id
+    # end _get_next_id
 
     # Save variable
     def _save_dict(self, d, dataset_directory, filename, directory):
@@ -139,9 +233,9 @@ class BookCollection(object):
         # end with
 
         # Save JSON
-        """with open(collection_json_filename, 'w') as f:
-            json.dump(d, f, indent=4)
-        # end with"""
+        with open(collection_json_filename, 'w') as f:
+            json.dump(self.to_dict(directory), f, indent=4)
+        # end with
 
         # For each book
         for element in d:
@@ -154,9 +248,9 @@ class BookCollection(object):
             # end with
 
             # Save JSON
-            """with open(element_json_filename, 'w') as f:
-                json.dump(element, f, indent=4)
-            # end with"""
+            with open(element_json_filename, 'w') as f:
+                json.dump(element.to_dict(), f, indent=4)
+            # end with
         # end for
     # end _save_dict
 
@@ -173,16 +267,38 @@ class BookCollection(object):
         :return:
         """
         # Collection file
-        collection_filename = os.path.join(dataset_directory, "books.p")
+        book_collection_filename = os.path.join(dataset_directory, "books.p")
+        author_collection_filename = os.path.join(dataset_directory, "authors.p")
 
         # Log
-        logging.getLogger(u"SFGram").info(u"Loading collection from {}".format(collection_filename))
+        logging.getLogger(u"SFGram").info(u"Loading book collection from {}".format(book_collection_filename))
+        logging.getLogger(u"SFGram").info(u"Loading author collection from {}".format(author_collection_filename))
 
         # Load
-        with open(collection_filename, 'rb') as f:
-            return pickle.load(collection_filename, f)
-        # end with
+        books = pickle.load(open(book_collection_filename, 'rb'))
+        authors = pickle.load(open(author_collection_filename, 'rb'))
+
+        # Return
+        return books, authors
     # end load
+
+    # Create collection
+    @staticmethod
+    def create(dataset_directory):
+        """
+        Create or load the collection
+        :param dataset_directory:
+        :return:
+        """
+        # Load or create book collection
+        if os.path.exists(os.path.join(dataset_directory, "books.p")) and os.path.exists(
+                os.path.join(dataset_directory, "authors.p")):
+            books, authors = BookCollection.load(dataset_directory)
+            return BookCollection(books=books, authors=authors)
+        else:
+            return BookCollection()
+        # end if
+    # end create
 
     # Save image in subdir
     @staticmethod
