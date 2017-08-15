@@ -38,26 +38,10 @@ if __name__ == "__main__":
     dataset = ds.Dataset(args.output_dir)
     dataset.check_directories()
 
-    # Load or create book collection
-    if os.path.exists(os.path.join(args.output_dir, "books.json")):
-        book_collection = ds.BookCollection.load(os.path.join(args.output_dir, "books.json"))
-    else:
-        book_collection = ds.BookCollection()
-    # end if
-
-    # Load or create country collection
-    if os.path.exists(os.path.join(args.output_dir, "country.json")):
-        country_collection = ds.CountryCollection.load(os.path.join(args.output_dir, "year.json"))
-    else:
-        country_collection = ds.CountryCollection()
-    # end if
-
-    # Load or create year collection
-    if os.path.exists(os.path.join(args.output_dir, "year.json")):
-        year_collection = ds.YearCollection.load(os.path.join(args.output_dir, "year.json"))
-    else:
-        year_collection = ds.YearCollection()
-        # end if
+    # Load or create collections
+    book_collection = ds.BookCollection.create(args.output_dir)
+    country_collection = ds.CountryCollection.create(args.output_dir)
+    year_collection = ds.CountryCollection.create(args.output_dir)
 
     # Open category
     gutenberg_con = gb.GutenbergBookshelf()
@@ -66,7 +50,8 @@ if __name__ == "__main__":
     # For each book
     for index, book_informations in enumerate(gutenberg_con):
         # New book
-        book = ds.Book()
+        book = ds.Book(title=book_informations['title'])
+        book_collection.add(book)
 
         # Wikipedia & Goodreads information
         wikipedia_info = wp.WikipediaBookInformation.get_book_information(book_informations['title'],
@@ -81,13 +66,11 @@ if __name__ == "__main__":
         # For each authors
         for author_name in book_informations['authors']:
             # Author object
-            author = ds.Author()
+            author = ds.Author(name=author_name)
+            author = book_collection.add(author)
 
             # Info
             author.import_from_dict(wp.WikipediaBookInformation.get_author_information(author_name))
-
-            # Add to book collection
-            author = book_collection.add(author)
 
             # Add to book's authors
             if author.id not in book.authors and author.id != book.author:
@@ -104,20 +87,32 @@ if __name__ == "__main__":
         book.author = book.authors[0]
 
         # Country
-        if 'country' in wikipedia_info.keys():
-            country = ds.Country(wikipedia_info['country'])
-            country_collection.add(country)
-            country.books.append(book_collection.get_next_book_id())
-            country.n_books += 1
-            book.country = country.id
+        if 'country' not in wikipedia_info.keys():
+            country_name = u"Unknown"
+        else:
+            country_name = wikipedia_info['country']
         # end if
+        country = ds.Country(country_name)
+        country = country_collection.add(country)
+        country.books.append(book.id)
+        country.n_books += 1
+        book.country = country.id
 
         # Year
-        pub_year = book.wikipedia['year'] if book.wikipedia['year'] != -1 else book.goodreads['year']
+        if not book.wikipedia['found'] and not book.goodreads['found']:
+            pub_year = -1
+        elif not book.wikipedia['found'] and book.goodreads['found']:
+            pub_year = book.goodreads['year']
+        elif book.wikipedia['found'] and not book.goodreads['found']:
+            pub_year = book.wikipedia['year']
+        else:
+            pub_year = book.wikipedia['year'] if book.wikipedia['year'] != -1 else book.goodreads['year']
+        # end if
         year = ds.Year(year=pub_year)
+        year = year_collection.add(year)
         year.books.append(book.id)
         year.n_books += 1
-        year_collection.add(year)
+        book.year = pub_year
 
         # Save gutenberg images
         for (data, name) in book_informations['images']:
@@ -150,12 +145,10 @@ if __name__ == "__main__":
                                          book_informations['content'])
         # end if
 
-        # Add to book collection
-        book_collection.add(book)
-
         # Save collections
         book_collection.save(dataset.get_dataset_directory())
         country_collection.save(dataset.get_dataset_directory())
+        year_collection.save(dataset.get_dataset_directory())
     # end for
 
 # end if
