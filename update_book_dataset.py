@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # Load or create collections
     book_collection = ds.BookCollection.create(args.output_dir)
     country_collection = ds.CountryCollection.create(args.output_dir)
-    year_collection = ds.CountryCollection.create(args.output_dir)
+    year_collection = ds.YearCollection.create(args.output_dir)
 
     # Open category
     gutenberg_con = gb.GutenbergBookshelf()
@@ -108,6 +108,8 @@ if __name__ == "__main__":
         else:
             pub_year = book.wikipedia['year'] if book.wikipedia['year'] != -1 else book.goodreads['year']
         # end if
+
+        # Save year
         year = ds.Year(year=pub_year)
         year = year_collection.add(year)
         year.books.append(book.id)
