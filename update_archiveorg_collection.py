@@ -8,11 +8,12 @@ from mongoengine import *
 import psutil
 import os
 import download as dw
-from db.Author import Author
-from db.Book import Book
-from db.Country import Country
-from db.Genre import Genre
-from db.Image import Image
+import wikipediaorg as wp
+import dataset as ds
+import goodreadscom as gr
+import gutenberg as gb
+import internetarchiveorg as ia
+import isfdb
 from tools.Tools import Tools
 import hashlib
 
@@ -87,10 +88,10 @@ def get_image(image_url, image_ext=""):
 if __name__ == "__main__":
 
     # Argument parser
-    parser = argparse.ArgumentParser(description="SFgram - Update the SFGram MongoDB database.")
+    parser = argparse.ArgumentParser(description="SFgram - Update the SFGram archive.org collection in the dataset")
 
     # Argument
-    parser.add_argument("--database", type=str, help="Database name", default="sfgram", required=True)
+    parser.add_argument("--output-dir", type=str, help="Output directory", required=True)
     parser.add_argument("--collection", type=str, help="Collection's name", required=True)
     parser.add_argument("--log-level", type=int, help="Log level", default=20)
     args = parser.parse_args()
@@ -99,52 +100,34 @@ if __name__ == "__main__":
     logging.basicConfig(level=args.log_level)
     logger = logging.getLogger(name="SFgram")
 
-    # Connection to MongoDB
-    db_client = connect(args.database)
+    # Dataset
+    dataset = ds.Dataset(args.output_dir)
+    dataset.check_directories()
+
+    # Load or create collections
+    book_collection = ds.BookCollection.create(args.output_dir)
+    country_collection = ds.CountryCollection.create(args.output_dir)
+    year_collection = ds.CountryCollection.create(args.output_dir)
 
     # AI collection
-    collection = dw.ArchiveOrgCollection(args.collection)
+    collection = ia.ArchiveOrgCollection(args.collection)
 
     # Get collection information
-    collection_info = dw.ArchiveOrgCollectionInformation.get_item_information(args.collection)
+    collection_info = ia.ArchiveOrgCollectionInformation.get_item_information(args.collection)
 
-    # Create or get author
-    if Author.exists(author_name=collection_info['name']):
-        author = Author.get_by_name(collection_info['name'])
-    else:
-        logging.info(u"New author {}".format(collection_info['name']))
-        author = Author(name=collection_info['name'])
-        author.bio = collection_info['description']
-        author.save()
-    # end if
-
-    # Close
-    db_client.close()
-
-    # Debug
-    pid = os.getpid()
-    py = psutil.Process(pid)
-
-    # No cache
-    Author.objects.no_cache()
-    Book.objects.no_cache()
-    Image.objects.no_cache()
+    # Create author
+    author = ds.Author(name=collection_info['name'])
+    author = book_collection.add(author)
 
     # Authors books
     author_books = dict()
 
     # List items
     for item in collection:
-        # Connection to MongoDB
-        db_client = connect(args.database)
-
-        # Log
-        logging.debug(u"Memory used: {}".format(py.memory_info()[0] / 2. ** 30))
-
         # Get informations
-        info = dw.ArchiveOrgBookInformation.get_item_information(item)
+        info = ia.ArchiveOrgBookInformation.get_item_information(item)
         try:
-            isfdb_info = dw.ISFDbBookInformation.get_book_information(info['isfdb_link'])
+            isfdb_info = isfdb.ISFDbBookInformation.get_book_information(info['isfdb_link'])
         except KeyError:
             continue
         # end try
@@ -207,20 +190,6 @@ if __name__ == "__main__":
                 # Delete
                 del book
             # end if
-        # end if
-
-        # Delete info
-        del info
-        del isfdb_info
-        del item
-
-        # Close
-        db_client.close()
-
-        # Check memory
-        if (py.memory_info()[0] / 2. ** 30) > 10.0:
-            logging.error(u"Too much memory... :(")
-            exit()
         # end if
     # end for
 

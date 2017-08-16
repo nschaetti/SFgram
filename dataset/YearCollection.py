@@ -15,7 +15,6 @@ class YearCollection(object):
     A collection of year in the dataset
     """
 
-    _next_year_id = 0
     _years = list()
     _n_year = 0
 
@@ -130,6 +129,23 @@ class YearCollection(object):
     ####################################################
     # Static
     ####################################################
+
+    # Create collection
+    @staticmethod
+    def create(dataset_directory):
+        """
+        Create or load the collection
+        :param dataset_directory:
+        :return:
+        """
+        # Load or create book collection
+        if os.path.exists(os.path.join(dataset_directory, "years.p")):
+            years = YearCollection.load(dataset_directory)
+            return YearCollection(years=years)
+        else:
+            return YearCollection()
+        # end if
+    # end create
 
     # Load book collection
     @staticmethod

@@ -195,8 +195,8 @@ class CountryCollection(object):
         """
         # Load or create book collection
         if os.path.exists(os.path.join(dataset_directory, "countries.p")):
-            books, authors = CountryCollection.load(dataset_directory)
-            return CountryCollection(books=books)
+            countries = CountryCollection.load(dataset_directory)
+            return CountryCollection(countries=countries)
         else:
             return CountryCollection()
         # end if
