@@ -98,7 +98,7 @@ class GutenbergBookshelf(object):
         # Get cover art
         try:
             # Download HTTP file
-            book_informations['cover'] = Tools.download_http_file(book_informations['cover-art-url'])
+            book_informations['cover'] = Tools.download_http_file(book_informations['cover_art_url'])
         except KeyError:
             pass
         except DownloadErrorException as e:

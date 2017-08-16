@@ -51,7 +51,7 @@ if __name__ == "__main__":
     for index, book_informations in enumerate(gutenberg_con):
         # New book
         book = ds.Book(title=book_informations['title'])
-        book_collection.add(book)
+        book = book_collection.add(book)
 
         # Wikipedia & Goodreads information
         wikipedia_info = wp.WikipediaBookInformation.get_book_information(book_informations['title'],
@@ -118,32 +118,32 @@ if __name__ == "__main__":
 
         # Save gutenberg images
         for (data, name) in book_informations['images']:
-            book_collection.save_image(dataset.get_dataset_directory(), book_collection.get_next_book_id(), data, name)
+            book_collection.save_image(dataset.get_dataset_directory(), book.id, data, name)
         # end for
 
         # Save gutenberg images
         if wikipedia_info['wikipedia']['found']:
             for (data, name) in wikipedia_info['images']:
-                book_collection.save_image(dataset.get_dataset_directory(), book_collection.get_next_book_id(), data,
+                book_collection.save_image(dataset.get_dataset_directory(), book.id, data,
                                            name)
             # end for
         # end if
 
         # Save cover-art
         if 'cover' in book_informations.keys():
-            book_collection.save_cover(dataset.get_dataset_directory(), book_collection.get_next_book_id(),
-                                           book_informations['cover'][0], book_informations['cover'][1])
+            book_collection.save_cover(dataset.get_dataset_directory(), book.id,
+                                       book_informations['cover'][0], book_informations['cover'][1])
         # end if
 
         # Save small image
         if 'small_image' in goodreads_info.keys():
-            book_collection.save_image(dataset.get_dataset_directory(), book_collection.get_next_book_id(),
-                                           goodreads_info['small_image'][0], goodreads_info['small_image'][1])
-            # end if
+            book_collection.save_image(dataset.get_dataset_directory(), book.id,
+                                       goodreads_info['small_image'][0], goodreads_info['small_image'][1])
+        # end if
 
         # Save content
         if book.content_available:
-            book_collection.save_content(dataset.get_dataset_directory(), book_collection.get_next_book_id(),
+            book_collection.save_content(dataset.get_dataset_directory(), book.id,
                                          book_informations['content'])
         # end if
 
