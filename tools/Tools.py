@@ -51,6 +51,10 @@ class Tools(object):
                 logging.getLogger(u"SFGram").error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
                 pass
+            except urllib2.URLError as e:
+                logging.getLogger(u"SFGram").error(u"URL error trying to retrieve {} : {}".format(url, unicode(e)))
+                last_error = e
+                pass
             # end try
             errors += 1
         # end while
@@ -87,12 +91,16 @@ class Tools(object):
             except socket.error as e:
                 logging.getLogger(u"SFGram").error(u"Socket error trying to retrieve {} : {}".format(url, unicode(e)))
                 last_error = e
+            except urllib2.URLError as e:
+                logging.getLogger(u"SFGram").error(u"URL error trying to retrieve {} : {}".format(url, unicode(e)))
+                last_error = e
+                pass
             # end try
             errors += 1
         # end while
 
         # Limit
-        raise DownloadErrorException(u"Impossible to download HTTP file {}".format(url))
+        raise DownloadErrorException(u"Impossible to download {} : {}".format(url, last_error))
     # end download_http_file
 
 # end Tools
