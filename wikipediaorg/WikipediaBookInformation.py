@@ -231,6 +231,7 @@ class WikipediaBookInformation(object):
                             page = wikipedia.page(page_title)
                         except wikipedia.exceptions.WikipediaException:
                             time.sleep(600)
+                            page = wikipedia.page(page_title)
                             pass
                         # end try
 
