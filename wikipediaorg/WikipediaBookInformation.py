@@ -227,7 +227,12 @@ class WikipediaBookInformation(object):
                 if "disambiguation" not in page_title:
                     try:
                         # Get page
-                        page = wikipedia.page(page_title)
+                        try:
+                            page = wikipedia.page(page_title)
+                        except wikipedia.exceptions.WikipediaException:
+                            time.sleep(600)
+                            pass
+                        # end try
 
                         # Get information in the box
                         wiki_info = WikipediaBookInformation.get_infobox(page.html())
