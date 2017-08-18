@@ -227,22 +227,41 @@ class WikipediaBookInformation(object):
             for page_title in searches:
                 if "disambiguation" not in page_title:
                     try:
-                        # Get page
-                        try:
-                            page = wikipedia.page(page_title)
-                        except wikipedia.exceptions.WikipediaException as e:
-                            logging.getLogger(u"SFGram").warning(
-                                u"Wikipedia exception {}, wait for 10 minutes and retry".format(e))
-                            time.sleep(600)
-                            page = wikipedia.page(page_title)
-                            pass
-                        except requests.exceptions.SSLError as e:
-                            logging.getLogger(u"SFGram").warning(
-                                u"SSL exception {}, wait for 10 minutes and retry".format(e))
-                            time.sleep(600)
-                            page = wikipedia.page(page_title)
-                            pass
-                        # end try
+                        count = 0
+                        success = False
+                        while count < 10:
+                            # Get page
+                            try:
+                                page = wikipedia.page(page_title)
+                                success = True
+                                break
+                            except wikipedia.exceptions.WikipediaException as e:
+                                logging.getLogger(u"SFGram").warning(
+                                    u"Wikipedia exception {}, wait for 10 minutes and retry".format(e))
+                                time.sleep(600)
+                                count += 1
+                                pass
+                            except requests.exceptions.SSLError as e:
+                                logging.getLogger(u"SFGram").warning(
+                                    u"SSL exception {}, wait for 10 minutes and retry".format(e))
+                                time.sleep(600)
+                                count += 1
+                                pass
+                            except requests.exceptions.ConnectionError as e:
+                                logging.getLogger(u"SFGram").warning(
+                                    u"Connection exception {}, wait for 10 minutes and retry".format(e))
+                                time.sleep(600)
+                                count += 1
+                                pass
+                            # end try
+                        # end while
+
+                        # CHeck
+                        if not success:
+                            logging.getLogger(u"SFGram").fatal(
+                                u"Impossible to get Wikipedia page {}".format(page_title))
+                            exit()
+                        # end if
 
                         # Get information in the box
                         wiki_info = WikipediaBookInformation.get_infobox(page.html())
