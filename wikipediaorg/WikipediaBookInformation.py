@@ -21,6 +21,7 @@ import bs4 as BeautifulSoup
 import logging
 import re
 import time
+import requests
 from dateutil.parser import parse
 from tools.Tools import Tools
 import wikipedia
@@ -229,7 +230,15 @@ class WikipediaBookInformation(object):
                         # Get page
                         try:
                             page = wikipedia.page(page_title)
-                        except wikipedia.exceptions.WikipediaException:
+                        except wikipedia.exceptions.WikipediaException as e:
+                            logging.getLogger(u"SFGram").warning(
+                                u"Wikipedia exception {}, wait for 10 minutes and retry".format(e))
+                            time.sleep(600)
+                            page = wikipedia.page(page_title)
+                            pass
+                        except requests.exceptions.SSLError as e:
+                            logging.getLogger(u"SFGram").warning(
+                                u"SSL exception {}, wait for 10 minutes and retry".format(e))
                             time.sleep(600)
                             page = wikipedia.page(page_title)
                             pass
