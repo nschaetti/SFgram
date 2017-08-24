@@ -126,6 +126,23 @@ class WikipediaBookInformation(object):
         return parse("2038-01-01")
     # end extract_date
 
+    # Check wikipedia page summary
+    @staticmethod
+    def check_author_summary(summary):
+        """
+        Check Wikipedia page summary
+        :param summary:
+        :return:
+        """
+        summary = summary.lower()
+
+        if u"writer" in summary or u"novelist" in summary:
+            return True
+        # end if
+
+        return False
+    # end check_summary
+
     # Get author information
     @staticmethod
     def get_author_information(author_name):
@@ -138,7 +155,7 @@ class WikipediaBookInformation(object):
         info = {'wikipedia': {'found': False}}
 
         # Search for the book on wikipedia
-        logging.debug(u"Searching Wikipedia page for {}".format(author_name))
+        logging.getLogger(u"SFGram").info(u"Searching Wikipedia page for {}".format(author_name))
         searches = wikipedia.search(author_name)
 
         try:
@@ -149,56 +166,83 @@ class WikipediaBookInformation(object):
                         # Get page
                         page = wikipedia.page(page_title)
 
-                        # Get information in the box
-                        wiki_info = WikipediaBookInformation.get_infobox(page.html())
+                        if WikipediaBookInformation.check_author_summary(page.summary):
+                            # Get information in the box
+                            wiki_info = WikipediaBookInformation.get_infobox(page.html())
 
-                        # Born
-                        if "born" in wiki_info:
-                            info['born'] = WikipediaBookInformation.extract_date(wiki_info['born'])
-                        # end if
-
-                        # Died
-                        if "died" in wiki_info:
-                            info['died'] = WikipediaBookInformation.extract_date(wiki_info['died'])
-                        # end if
-
-                        # Death
-                        if "death" in wiki_info:
-                            info['died'] = WikipediaBookInformation.extract_date(wiki_info['death'])
-                        # end if
-
-                        # Summary
-                        info['summary'] = page.summary
-
-                        # Find biography
-                        for section in ("Life", "Early life", "Career", "Personal life", "Death", "Biography"):
-                            if page.section(section) is not None:
-                                if 'bio' not in info:
-                                    info['bio'] = unicode(page.section(section))
-                                else:
-                                    info['bio'] += u" " + unicode(page.section(section))
-                                # end if
+                            # Born
+                            if "born" in wiki_info:
+                                info['born'] = WikipediaBookInformation.extract_date(wiki_info['born'])
                             # end if
-                        # end for
 
-                        # Page
-                        info['wikipedia']['url'] = page.url
+                            # Died
+                            if "died" in wiki_info:
+                                info['died'] = WikipediaBookInformation.extract_date(wiki_info['died'])
+                            # end if
 
-                        # End
-                        info['wikipedia']['found'] = True
-                        break
+                            # Death
+                            if "death" in wiki_info:
+                                info['died'] = WikipediaBookInformation.extract_date(wiki_info['death'])
+                            # end if
+
+                            # Summary
+                            info['summary'] = page.summary
+
+                            # Find biography
+                            for section in ("Life", "Early life", "Career", "Personal life", "Death", "Biography"):
+                                if page.section(section) is not None:
+                                    if 'bio' not in info:
+                                        info['bio'] = unicode(page.section(section))
+                                    else:
+                                        info['bio'] += u" " + unicode(page.section(section))
+                                    # end if
+                                # end if
+                            # end for
+
+                            # Page
+                            info['wikipedia']['url'] = page.url
+
+                            # End
+                            info['wikipedia']['found'] = True
+                            logging.getLogger(u"SFGram").info(u"Wikipedia page found at {}".format(page.url))
+                            break
+                        # end if
                     except wikipedia.exceptions.DisambiguationError:
-                        logging.warning(u"Disambiguation error for page {}".format(page_title))
+                        logging.getLogger(u"SFGram").warning(u"Disambiguation error for page {}".format(page_title))
                         pass
                     # end try
                 # end if
             # end for
         except wikipedia.exceptions.PageError:
-            logging.error(u"Cannot find Wikipedia page for {}".format(author_name))
+            logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {}".format(author_name))
         # end try
 
         return info
     # end get_author_information
+
+    # Check wikipedia page summary
+    @staticmethod
+    def check_summary(summary, author):
+        """
+        Check Wikipedia page summary
+        :param summary:
+        :return:
+        """
+        summary = summary.lower()
+        author_parts = author.lower().split(u' ')
+
+        if u"novel" in summary or u"book" in summary or u"short story" in summary or u"short-story" in summary or u"novelette" in summary or u"novella" in summary:
+            author_found = False
+            for author_part in author_parts:
+                if author_part in summary:
+                    author_found = True
+                # end if
+            # end for
+            return author_found
+        # end if
+
+        return False
+    # end check_summary
 
     # Get book information
     @staticmethod
@@ -210,132 +254,146 @@ class WikipediaBookInformation(object):
         # Info
         info = {'wikipedia': {'found': False}}
 
-        # Search for the book on wikipedia
-        logging.getLogger(u"SFGram").info(u"Searching Wikipedia page for {}".format(title + u" " + author))
+        # Searches
+        searches = [title, title + u" " + author, title + u" novel", title + u" short story"]
 
-        # try
-        try:
-            searches = wikipedia.search(title)
-        except wikipedia.exceptions.WikipediaException:
-            logging.getLogger(u"SFGram").warning(u"Can't search on Wikipedia, wait for 10 minutes and retry")
-            time.sleep(600)
-            searches = wikipedia.search(title)
-        # end try
+        # Try each searches
+        for title_search in searches:
+            # Search for the book on wikipedia
+            logging.getLogger(u"SFGram").info(u"Searching Wikipedia page for {}".format(title_search))
 
-        try:
-            # For each response
-            for page_title in searches:
-                if "disambiguation" not in page_title:
-                    try:
-                        count = 0
-                        success = False
-                        while count < 10:
-                            # Get page
-                            try:
-                                page = wikipedia.page(page_title)
-                                success = True
-                                break
-                            except wikipedia.exceptions.WikipediaException as e:
+            # try
+            try:
+                searches = wikipedia.search(title_search)
+            except wikipedia.exceptions.WikipediaException:
+                logging.getLogger(u"SFGram").warning(u"Can't search on Wikipedia, wait for 10 minutes and retry")
+                time.sleep(600)
+                searches = wikipedia.search(title_search)
+            # end try
+
+            try:
+                # For each response
+                for page_title in searches:
+                    if "disambiguation" not in page_title:
+                        #print(page_title)
+                        try:
+                            count = 0
+                            success = False
+                            reference_problem = False
+                            while count < 10:
+                                # Get page
+                                try:
+                                    page = wikipedia.page(page_title)
+                                    success = True
+                                    break
+                                except wikipedia.exceptions.WikipediaException as e:
+                                    reference_problem = True
+                                    success = True
+                                    break
+                                    pass
+                                except requests.exceptions.SSLError as e:
+                                    logging.getLogger(u"SFGram").warning(
+                                        u"SSL exception {}, wait for 10 minutes and retry".format(e))
+                                    time.sleep(600)
+                                    count += 1
+                                    pass
+                                except requests.exceptions.ConnectionError as e:
+                                    logging.getLogger(u"SFGram").warning(
+                                        u"Connection exception {}, wait for 10 minutes and retry".format(e))
+                                    time.sleep(600)
+                                    count += 1
+                                    pass
+                                # end try
+                            # end while
+
+                            # CHeck
+                            if not success:
                                 logging.getLogger(u"SFGram").warning(
-                                    u"Wikipedia exception {}, wait for 10 minutes and retry".format(e))
-                                time.sleep(600)
-                                count += 1
-                                pass
-                            except requests.exceptions.SSLError as e:
-                                logging.getLogger(u"SFGram").warning(
-                                    u"SSL exception {}, wait for 10 minutes and retry".format(e))
-                                time.sleep(600)
-                                count += 1
-                                pass
-                            except requests.exceptions.ConnectionError as e:
-                                logging.getLogger(u"SFGram").warning(
-                                    u"Connection exception {}, wait for 10 minutes and retry".format(e))
-                                time.sleep(600)
-                                count += 1
-                                pass
-                            # end try
-                        # end while
-
-                        # CHeck
-                        if not success:
-                            logging.getLogger(u"SFGram").fatal(
-                                u"Impossible to get Wikipedia page {}".format(page_title))
-                            exit()
-                        # end if
-
-                        # Get information in the box
-                        wiki_info = WikipediaBookInformation.get_infobox(page.html())
-
-                        # Try to get the published date
-                        if u"published" in wiki_info or u"published-in" in wiki_info or u"publication-date" in wiki_info:
-                            # Country
-                            if 'country' in wiki_info:
-                                info['country'] = wiki_info['country']
+                                    u"Impossible to get Wikipedia page {}".format(page_title))
                             # end if
 
-                            # Original title
-                            info['original_title'] = page.original_title
+                            # Check page is ok
+                            if success and not reference_problem and WikipediaBookInformation.check_summary(page.summary, author):
+                                # Get information in the box
+                                wiki_info = WikipediaBookInformation.get_infobox(page.html())
 
-                            # Image
-                            info['images'] = list()
-                            try:
-                                img_urls = WikipediaBookInformation.filter_wikipedia_images(page.images)
-                                for url in img_urls:
-                                    info['images'].append(Tools.download_http_file(url))
-                                # end for
-                            except KeyError:
-                                pass
-                            # end try
+                                # Try to get the published date
+                                if u"published" in wiki_info or u"published-in" in wiki_info or u"publication-date" in wiki_info:
+                                    # Country
+                                    if 'country' in wiki_info:
+                                        info['country'] = wiki_info['country']
+                                    # end if
 
-                            # Find plot
-                            for section in ("Plot", "Plot summary", "Synopsis"):
-                                if page.section(section) is not None:
-                                    info['plot'] = unicode(page.section(section))
+                                    # Original title
+                                    info['original_title'] = page.original_title
+
+                                    # Image
+                                    info['images'] = list()
+                                    try:
+                                        img_urls = WikipediaBookInformation.filter_wikipedia_images(page.images)
+                                        for url in img_urls:
+                                            info['images'].append(Tools.download_http_file(url))
+                                        # end for
+                                    except KeyError:
+                                        pass
+                                    # end try
+
+                                    # Find plot
+                                    for section in ("Plot", "Plot summary", "Synopsis"):
+                                        if page.section(section) is not None:
+                                            info['plot'] = unicode(page.section(section))
+                                        # end if
+                                    # end for
+
+                                    # Summary
+                                    info['summary'] = page.summary
+                                    info['wikipedia']['url'] = page.url
+
+                                    # Cover artist
+                                    if u'Cover\u00a0artist' in wiki_info:
+                                        info['cover_artist'] = wiki_info[u'Cover\u00a0artist']
+                                    # end if
+
+                                    # Publication date
+                                    publication_date = WikipediaBookInformation.extract_publication_date(wiki_info)
+
+                                    # If found
+                                    if publication_date != -1:
+                                        info['wikipedia']['year'] = WikipediaBookInformation.extract_publication_date(wiki_info)
+                                    else:
+                                        info['wikipedia']['year'] = -1
+                                    # end if
+
+                                    # Publisher
+                                    if u'Publisher' in wiki_info:
+                                        info['publisher'] = wiki_info[u'Publisher']
+                                    # end if
+
+                                    # Published in
+                                    info['published_in'] = wiki_info[u'Published in']\
+                                        if u'Published in' in wiki_info else None
+
+                                    # Found
+                                    info['wikipedia']['found'] = True
+                                    logging.getLogger(u"SFGram").info(u"Wikipedia page found at {}".format(page.url))
+                                    break
                                 # end if
-                            # end for
-
-                            # Summary
-                            info['summary'] = page.summary
-                            info['wikipedia']['url'] = page.url
-
-                            # Cover artist
-                            if u'Cover\u00a0artist' in wiki_info:
-                                info['cover_artist'] = wiki_info[u'Cover\u00a0artist']
                             # end if
+                        except wikipedia.exceptions.DisambiguationError:
+                            logging.getLogger(u"SFGram").warning(u"Disambiguation error for page {}".format(page_title))
+                            pass
+                        # end try
+                    # end if
+                # end for
+            except wikipedia.exceptions.PageError as e:
+                logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {} : {}".format(title, e))
+            # end try
 
-                            # Publication date
-                            publication_date = WikipediaBookInformation.extract_publication_date(wiki_info)
-
-                            # If found
-                            if publication_date != -1:
-                                info['wikipedia']['year'] = WikipediaBookInformation.extract_publication_date(wiki_info)
-                            else:
-                                info['wikipedia']['year'] = -1
-                            # end if
-
-                            # Publisher
-                            if u'Publisher' in wiki_info:
-                                info['publisher'] = wiki_info[u'Publisher']
-                            # end if
-
-                            # Published in
-                            info['published_in'] = wiki_info[u'Published in']\
-                                if u'Published in' in wiki_info else None
-
-                            # Found
-                            info['wikipedia']['found'] = True
-                            logging.getLogger(u"SFGram").info(u"Wikipedia page found at {}".format(page.url))
-                            break
-                        # end if
-                    except wikipedia.exceptions.DisambiguationError:
-                        logging.getLogger(u"SFGram").warning(u"Disambiguation error for page {}".format(page_title))
-                        pass
-                    # end try
-                # end if
-            # end for
-        except wikipedia.exceptions.PageError as e:
-            logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {} : {}".format(title, e))
-        # end try
+            # Found?
+            if info['wikipedia']['found']:
+                break
+            # end if
+        # end for
 
         # Not found
         if not info['wikipedia']['found']:
