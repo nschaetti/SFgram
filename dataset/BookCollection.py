@@ -75,11 +75,11 @@ class BookCollection(object):
         """
         if not self.exists(element):
             if type(element) is Book:
-                # Log
-                logging.getLogger(u"SFGram").info(u"New book found {}".format(element.title))
-
                 # Set ID
                 element.id = self._next_book_id
+
+                # Log
+                logging.getLogger(u"SFGram").info(u"New book found {} with ID {}".format(element.title, element.id))
 
                 # Add
                 self._books.append(element)
@@ -87,11 +87,11 @@ class BookCollection(object):
                 # Next id
                 self._next_book_id += 1
             elif type(element) is Author:
-                # Log
-                logging.getLogger(u"SFGram").info(u"New author found {}".format(element.name))
-
                 # Set ID
                 element.id = self._next_author_id
+
+                # Log
+                logging.getLogger(u"SFGram").info(u"New author found {} with ID {}".format(element.name, element.id))
 
                 # Add
                 self._authors.append(element)
@@ -205,7 +205,7 @@ class BookCollection(object):
                 max_id = element.id
                 # end if
         # end for
-        return max_id
+        return max_id + 1
     # end _get_next_id
 
     # Save variable
