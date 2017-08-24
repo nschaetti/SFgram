@@ -36,7 +36,7 @@ class SFGramConnector(object):
         if author is not None:
             author_object = Author.get_by_name(author)
             kwargs['author'] = author_object
-        else
+        else:
             kwargs['author'] = None
         # end if
 
