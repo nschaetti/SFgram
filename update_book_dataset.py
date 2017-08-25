@@ -50,11 +50,11 @@ if __name__ == "__main__":
     # For each book
     for index, book_informations in enumerate(gutenberg_con):
         # New book
-        book = ds.Book(title=book_informations['title'])
+        book = ds.Book(title=book_informations['title'], author_name=book_informations['author_name'])
         book = book_collection.add(book)
 
         # Log
-        logging.getLogger(u"SFGram").info(u"Book {} added with ID {}".format(book.title, book.id))
+        logging.getLogger(u"SFGram").info(u"Book {} ({}) added with ID {}".format(book.title, book.author_name, book.id))
 
         # Wikipedia & Goodreads information
         wikipedia_info = wp.WikipediaBookInformation.get_book_information(book_informations['title'],

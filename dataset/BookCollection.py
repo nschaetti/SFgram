@@ -52,7 +52,7 @@ class BookCollection(object):
         """
         if type(element) is Book:
             for book in self._books:
-                if book.title == element.title:
+                if book.title == element.title and book.author_name == element.author_name:
                     return True
                 # end if
             # end for
@@ -79,7 +79,7 @@ class BookCollection(object):
                 element.id = self._next_book_id
 
                 # Log
-                logging.getLogger(u"SFGram").info(u"New book found {} with ID {}".format(element.title, element.id))
+                logging.getLogger(u"SFGram").info(u"New book found {} ({}) with ID {}".format(element.title, element.author_name, element.id))
 
                 # Add
                 self._books.append(element)
@@ -136,6 +136,21 @@ class BookCollection(object):
             if author.name == name:
                 return author
             # end if
+        # end for
+        return None
+    # end get_by_name
+
+    # Get author by name
+    def get_author_by_id(self, aid):
+        """
+        Get country by name
+        :param aid:
+        :return:
+        """
+        for author in self._authors:
+            if author.id == aid:
+                return author
+                # end if
         # end for
         return None
     # end get_by_name

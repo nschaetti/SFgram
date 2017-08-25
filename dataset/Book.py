@@ -13,6 +13,7 @@ class Book(object):
 
     # Fields
     author = None
+    author_name = ""
     authors = list()
     average_rating = -1.0
     category = ""
@@ -53,11 +54,12 @@ class Book(object):
     year = 0
 
     # Constructor
-    def __init__(self, title):
+    def __init__(self, title, author_name):
         """
         Constructor
         """
         self.title = title
+        self.author_name = author_name
         self.authors = list()
         self.country = list()
         self.genres = list()
