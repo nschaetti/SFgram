@@ -140,6 +140,21 @@ class BookCollection(object):
         return None
     # end get_by_name
 
+    # Get author by ID
+    def get_author_by_id(self, author_id):
+        """
+        Get author by ID
+        :param author_id:
+        :return:
+        """
+        for author in self._authors:
+            if author.id == author_id:
+                return author
+            # end if
+        # end for
+        return None
+    # end get_author_by_id
+
     # Get next book id
     def get_next_book_id(self):
         """
@@ -186,6 +201,15 @@ class BookCollection(object):
 
         return result
     # end to_dict
+
+    # Get all books
+    def get_books(self):
+        """
+        Get all books
+        :return:
+        """
+        return self._books
+    # end get_books
 
     ####################################################
     # Static

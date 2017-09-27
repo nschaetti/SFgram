@@ -98,6 +98,15 @@ class CountryCollection(object):
         return country
     # end add
 
+    # Get countries
+    def get_countries(self):
+        """
+        Get countries
+        :return:
+        """
+        return self._countries
+    # end get_countries
+
     # Get country
     def get_by_name(self, country_name):
         """
@@ -112,6 +121,21 @@ class CountryCollection(object):
         # end for
         return None
     # end get_by_name
+
+    # Get country by ID
+    def get_by_id(self, country_id):
+        """
+        Get country by ID
+        :param country_id:
+        :return:
+        """
+        for country in self._countries:
+            if country.id == country_id:
+                return country
+            # end if
+        # end for
+        return None
+    # end get_by_id
 
     # Get next country id
     def get_next_country_id(self):
