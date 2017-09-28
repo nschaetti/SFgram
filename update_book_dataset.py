@@ -50,8 +50,11 @@ if __name__ == "__main__":
     # For each book
     for index, book_informations in enumerate(gutenberg_con):
         # New book
-        book = ds.Book(title=book_informations['title'])
+        book = ds.Book(title=book_informations['title'], author_name=book_informations['author_name'])
         book = book_collection.add(book)
+
+        # Log
+        logging.getLogger(u"SFGram").info(u"Book {} ({}) added with ID {}".format(book.title, book.author_name, book.id))
 
         # Wikipedia & Goodreads information
         wikipedia_info = wp.WikipediaBookInformation.get_book_information(book_informations['title'],
@@ -61,13 +64,16 @@ if __name__ == "__main__":
         # Import data
         book.import_from_dict(book_informations, exclude=['authors', 'images', 'cover', 'content', 'genres'])
         book.import_from_dict(wikipedia_info, exclude=['images', 'country'])
-        book.import_from_dict(goodreads_info, exclude=['small_image'])
+        book.import_from_dict(goodreads_info, exclude=['small_image', 'cover'])
 
         # For each authors
         for author_name in book_informations['authors']:
             # Author object
             author = ds.Author(name=author_name)
             author = book_collection.add(author)
+
+            # Log
+            logging.getLogger(u"SFGram").info(u"Author {} added with ID {}".format(author.name, author.id))
 
             # Info
             author.import_from_dict(wp.WikipediaBookInformation.get_author_information(author_name))
@@ -97,6 +103,9 @@ if __name__ == "__main__":
         country.books.append(book.id)
         country.n_books += 1
         book.country = country.id
+
+        # Log
+        logging.getLogger(u"SFGram").info(u"Country {} added with ID {}".format(country.name, country.id))
 
         # Year
         if not book.wikipedia['found'] and not book.goodreads['found']:
@@ -129,10 +138,16 @@ if __name__ == "__main__":
             # end for
         # end if
 
-        # Save cover-art
+        # Save cover (from wikipedia)
         if 'cover' in book_informations.keys():
             book_collection.save_cover(dataset.get_dataset_directory(), book.id,
                                        book_informations['cover'][0], book_informations['cover'][1])
+        # end if
+
+        # Save cover (from goodreads)
+        if 'cover' in goodreads_info.keys():
+            book_collection.save_cover(dataset.get_dataset_directory(), book.id,
+                                       goodreads_info['cover'][0], goodreads_info['cover'][1])
         # end if
 
         # Save small image
@@ -151,6 +166,9 @@ if __name__ == "__main__":
         book_collection.save(dataset.get_dataset_directory())
         country_collection.save(dataset.get_dataset_directory())
         year_collection.save(dataset.get_dataset_directory())
+
+        # Space
+        print("")
     # end for
 
 # end if

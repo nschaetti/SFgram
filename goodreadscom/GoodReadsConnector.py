@@ -134,7 +134,7 @@ class GoodReadsConnector(object):
         info['isbn13'] = book.isbn13
         info['isbn'] = book.isbn
         info['similar_books'] = list()
-        info['cover'] = book.image_url
+        info['cover'] = Tools.download_http_file(book.image_url)
         info['small_image'] = Tools.download_http_file(book.small_image_url)
         info['goodreads']['url'] = book.link
         info['description'] = book.description

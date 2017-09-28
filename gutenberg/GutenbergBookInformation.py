@@ -50,6 +50,11 @@ class GutenbergBookInformation(object):
             # end for
         # end if
 
+        # Author's name
+        if len(info['authors']) > 0:
+            info['author_name'] = info['authors'][0]
+        # end if
+
         # Language
         info['language'] = soup.find('tr', attrs={'itemprop': u"inLanguage"}).find('td').text.strip()
 

@@ -52,7 +52,7 @@ class BookCollection(object):
         """
         if type(element) is Book:
             for book in self._books:
-                if book.title == element.title:
+                if book.title == element.title and book.author_name == element.author_name:
                     return True
                 # end if
             # end for
@@ -75,11 +75,11 @@ class BookCollection(object):
         """
         if not self.exists(element):
             if type(element) is Book:
-                # Log
-                logging.getLogger(u"SFGram").info(u"New book found {}".format(element.title))
-
                 # Set ID
                 element.id = self._next_book_id
+
+                # Log
+                logging.getLogger(u"SFGram").info(u"New book found {} ({}) with ID {}".format(element.title, element.author_name, element.id))
 
                 # Add
                 self._books.append(element)
@@ -87,11 +87,11 @@ class BookCollection(object):
                 # Next id
                 self._next_book_id += 1
             elif type(element) is Author:
-                # Log
-                logging.getLogger(u"SFGram").info(u"New author found {}".format(element.name))
-
                 # Set ID
                 element.id = self._next_author_id
+
+                # Log
+                logging.getLogger(u"SFGram").info(u"New author found {} with ID {}".format(element.name, element.id))
 
                 # Add
                 self._authors.append(element)
@@ -140,6 +140,7 @@ class BookCollection(object):
         return None
     # end get_by_name
 
+<<<<<<< HEAD
     # Get author by ID
     def get_author_by_id(self, author_id):
         """
@@ -154,6 +155,22 @@ class BookCollection(object):
         # end for
         return None
     # end get_author_by_id
+=======
+    # Get author by name
+    def get_author_by_id(self, aid):
+        """
+        Get country by name
+        :param aid:
+        :return:
+        """
+        for author in self._authors:
+            if author.id == aid:
+                return author
+                # end if
+        # end for
+        return None
+    # end get_by_name
+>>>>>>> 3ebe6e283a87690671a026d983e696ee277f81ba
 
     # Get next book id
     def get_next_book_id(self):
@@ -229,7 +246,7 @@ class BookCollection(object):
                 max_id = element.id
                 # end if
         # end for
-        return max_id
+        return max_id + 1
     # end _get_next_id
 
     # Save variable

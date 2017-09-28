@@ -137,6 +137,7 @@ class GutenbergBookshelf(object):
 
         # Get and parse HTML
         try:
+            print(u"\nNew page\n")
             logging.getLogger(u"SFGram").info(u"Get HTML page {}".format(book_url))
             soup = Tools.download_html(book_url)
         except DownloadErrorException:

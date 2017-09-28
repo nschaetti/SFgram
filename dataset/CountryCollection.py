@@ -37,23 +37,6 @@ class CountryCollection(object):
     # Public
     ####################################################
 
-    # Get next id
-    def _get_next_id(self, collection):
-        """
-        Get next id
-        :param collection:
-        :return:
-        """
-        # Search next id
-        max_id = 0
-        for element in collection:
-            if element.id > max_id:
-                max_id = element.id
-                # end if
-        # end for
-        return max_id
-    # end _get_next_id
-
     # Exists
     def exists(self, country):
         """
@@ -157,9 +140,43 @@ class CountryCollection(object):
         self._save_dict(self._countries, dataset_directory, "countries.p")
     # end save
 
+    # To dictionary
+    def to_dict(self):
+        """
+        To dictionary
+        :return:
+        """
+        result = dict()
+
+        # Countries
+        result['countries'] = list()
+        for country in self._countries:
+            result['countries'].append(country.to_dict())
+        # end for
+
+        return result
+    # end to_dict
+
     ####################################################
-    # Static
+    # Private
     ####################################################
+
+    # Get next id
+    def _get_next_id(self, collection):
+        """
+        Get next id
+        :param collection:
+        :return:
+        """
+        # Search next id
+        max_id = 0
+        for element in collection:
+            if element.id > max_id:
+                max_id = element.id
+                # end if
+        # end for
+        return max_id + 1
+    # end _get_next_id
 
     # Save variable
     def _save_dict(self, d, dataset_directory, filename):
@@ -187,23 +204,6 @@ class CountryCollection(object):
             json.dump(self.to_dict(), f, indent=4)
         # end with
     # end _save_dict
-
-    # To dictionary
-    def to_dict(self):
-        """
-        To dictionary
-        :return:
-        """
-        result = dict()
-
-        # Countries
-        result['countries'] = list()
-        for country in self._countries:
-            result['countries'].append(country.to_dict())
-        # end for
-
-        return result
-    # end to_dict
 
     ####################################################
     # Static
