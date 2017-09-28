@@ -52,54 +52,85 @@ if __name__ == "__main__":
         # Load country
         country = country_collection.get_by_id(book.country)
 
+        # Load author
+        author = book_collection.get_author_by_id(book.author)
+
         # If country unknown
         if country.name == "Unknown":
-            # Load author
-            author = book_collection.get_author_by_id(book.author)
-
-            # Ask true country
-            print(u"{} {} {}".format(book.title, author.name, book.year))
-            new_country_name = raw_input(u"New country: ")
-
-            # Get country
-            new_country_obj = country_collection.get_by_name(new_country_name)
-
-            # If doesn't exists
-            if new_country_obj is None:
-                new_country_obj = Country(new_country_name)
-                country_collection.add(new_country_obj)
+            # Author's country
+            author_country = None
+            if author.country != -1:
+                author_country = country_collection.get_by_id(author.country)
             # end if
 
-            # Set country
-            book.country = new_country_obj.id
+            # If we don't know the author's country
+            if author_country is None:
+                # Ask true country
+                print(u"{} {} {}".format(book.title, author.name, book.year))
+                new_country_name = raw_input(u"New country: ")
 
-            # Add book to new country
-            new_country_obj.books.append(book.id)
-            new_country_obj.n_books += 1
+                # Get country
+                new_country_obj = country_collection.get_by_name(new_country_name)
 
-            # Remove from previous country
-            country.books.remove(book.id)
-            country.n_books -= 1
+                # If doesn't exists
+                if new_country_obj is None:
+                    new_country_obj = Country(new_country_name)
+                    country_collection.add(new_country_obj)
+                # end if
 
-            # Continue, save, quit?
-            next_action = raw_input(u"Continue (c or nothing)? Save(s)? Save and quit(q)?").lower()
+                # Set country
+                book.country = new_country_obj.id
 
-            # Execute
-            if next_action == 'c' or next_action == '':
-                pass
-            elif next_action == 'q':
-                # Save collections
-                book_collection.save(dataset.get_dataset_directory())
-                country_collection.save(dataset.get_dataset_directory())
-                year_collection.save(dataset.get_dataset_directory())
-                exit()
-            elif next_action == 's':
-                # Save collections
-                book_collection.save(dataset.get_dataset_directory())
-                country_collection.save(dataset.get_dataset_directory())
-                year_collection.save(dataset.get_dataset_directory())
+                # Add book to new country
+                new_country_obj.books.append(book.id)
+                new_country_obj.n_books += 1
+
+                # Remove from previous country
+                country.books.remove(book.id)
+                country.n_books -= 1
+
+                # Set author's country
+                author.country = new_country_obj.id
+
+                # Continue, save, quit?
+                next_action = raw_input(u"Continue (c or nothing)? Save(s)? Save and quit(q)?").lower()
+
+                # Execute
+                if next_action == 'c' or next_action == '':
+                    pass
+                elif next_action == 'q':
+                    # Save collections
+                    book_collection.save(dataset.get_dataset_directory())
+                    country_collection.save(dataset.get_dataset_directory())
+                    year_collection.save(dataset.get_dataset_directory())
+                    exit()
+                elif next_action == 's':
+                    # Save collections
+                    book_collection.save(dataset.get_dataset_directory())
+                    country_collection.save(dataset.get_dataset_directory())
+                    year_collection.save(dataset.get_dataset_directory())
+                # end if
+            elif author_country.name != "Unknown":
+                # Set country
+                book.country = author_country.id
+
+                # Add book to new country
+                author_country.books.append(book.id)
+                author_country.n_books += 1
+
+                # Remove from previous country
+                country.books.remove(book.id)
+                country.n_books -= 1
             # end if
+        elif author.country == -1:
+            # Set author's country
+            author.country = country.id
         # end if
     # end for
+
+    # Save collections
+    book_collection.save(dataset.get_dataset_directory())
+    country_collection.save(dataset.get_dataset_directory())
+    year_collection.save(dataset.get_dataset_directory())
 
 # end if
