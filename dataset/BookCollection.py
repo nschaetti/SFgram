@@ -125,6 +125,21 @@ class BookCollection(object):
         return None
     # end get_by_name
 
+    # Get book by ID
+    def get_book_by_id(self, book_id):
+        """
+        Get country by name
+        :param title:
+        :return:
+        """
+        for book in self._books:
+            if book.id == book_id:
+                return book
+                # end if
+        # end for
+        return None
+        # end get_by_name
+
     # Get author by name
     def get_author_by_name(self, name):
         """

@@ -37,6 +37,16 @@ class CountryCollection(object):
     # Public
     ####################################################
 
+    # Remove country
+    def remove(self, country):
+        """
+        Remove country
+        :param country:
+        :return:
+        """
+        self._countries.remove(country)
+    # end remove
+
     # Exists
     def exists(self, country):
         """
