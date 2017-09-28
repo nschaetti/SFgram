@@ -21,6 +21,7 @@ class Author(object):
     summary = ""
     wikipedia = {'ambiguation': False, 'url': u"", 'found': False}
     n_books = 0
+    country = -1
 
     # Constructor
     def __init__(self, name):
