@@ -140,7 +140,6 @@ class BookCollection(object):
         return None
     # end get_by_name
 
-<<<<<<< HEAD
     # Get author by ID
     def get_author_by_id(self, author_id):
         """
@@ -155,22 +154,6 @@ class BookCollection(object):
         # end for
         return None
     # end get_author_by_id
-=======
-    # Get author by name
-    def get_author_by_id(self, aid):
-        """
-        Get country by name
-        :param aid:
-        :return:
-        """
-        for author in self._authors:
-            if author.id == aid:
-                return author
-                # end if
-        # end for
-        return None
-    # end get_by_name
->>>>>>> 3ebe6e283a87690671a026d983e696ee277f81ba
 
     # Get next book id
     def get_next_book_id(self):
