@@ -12,11 +12,9 @@ class Country(object):
 
     # Fields
     id = 0
-    books = list()
-    n_books = 0
     name = ""
     movies = list()
-    n_movies = 0
+    authors = list()
 
     # Constructor
     def __init__(self, country_name):
@@ -25,7 +23,6 @@ class Country(object):
         """
         self.name = country_name
         self.authors = list()
-        self.books = list()
         self.movies = list()
     # end __init__
 

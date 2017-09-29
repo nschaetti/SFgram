@@ -22,7 +22,6 @@ class Book(object):
     content_available = False
     content_tokens = 0
     copyright = ""
-    country = 0
     cover_art = ""
     cover_art_url = ""
     cover_artist = ""
