@@ -42,6 +42,15 @@ class BookCollection(object):
     # Public
     ####################################################
 
+    # Get authors
+    def get_authors(self):
+        """
+        Get authors
+        :return:
+        """
+        return self._authors
+    # end get_authors
+
     # Exists
     def exists(self, element):
         """
