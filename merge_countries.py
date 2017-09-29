@@ -43,25 +43,46 @@ if __name__ == "__main__":
     country1 = country_collection.get_by_name(args.country1)
     country2 = country_collection.get_by_name(args.country2)
 
-    # For each book id in country 1
+    # Move books
     for book_id in country2.books:
         # Add to country 1
-        country1.books.append(book_id)
-        country1.n_books += 1
+        if book_id not in country1.books:
+            country1.books.append(book_id)
+        # end if
 
-        # Load the book
+        # Get book
         book = book_collection.get_book_by_id(book_id)
-        print(u"Set country of {} to {}".format(book.title, country1.name))
 
-        # Change book's country
-        book.country = country1.id
+        # Remove old country
+        if country2.id in book.countries:
+            book.countries.remove(country2.id)
+        # end if
 
-        # Load author
-        author = book_collection.get_author_by_id(book.author)
+        # Add new country
+        if country1.id not in book.countries:
+            book.countries.append(country1.id)
+        # end if
+    # end for
 
-        # Change author's country
-        author.country = country1.id
-        print(u"Set country of {} to {}".format(author.name, country1.name))
+    # Move authors
+    for author_id in country2.authors:
+        # Add to country 1
+        if author_id not in country1.authors:
+            country1.authors.append(author_id)
+        # end if
+
+        # Get author
+        author = book_collection.get_author_by_id(author_id)
+
+        # Remove old country
+        if country2.id in author.countries:
+            author.countries.remove(country2.id)
+        # end if
+
+        # Add new country
+        if country1.id not in author.countries:
+            author.countries.append(country1.id)
+        # end if
     # end for
 
     # Remove country
