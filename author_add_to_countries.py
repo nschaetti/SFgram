@@ -37,35 +37,21 @@ if __name__ == "__main__":
     country_collection = ds.CountryCollection.create(args.dataset_dir)
     year_collection = ds.YearCollection.create(args.dataset_dir)
 
-    # For each author
-    for author in book_collection.get_authors():
-        if author.country != -1:
-            # Load country
-            country = country_collection.get_by_id(author.country)
-
-            # Add if not present
-            if author.id not in country.authors:
-                print(u"Adding {} to country {}".format(author.name, country.name))
-                country.authors.append(author.id)
+    # For each books
+    for book in book_collection.get_books():
+        # For each country
+        for country_id in book.countries:
+            # Get country
+            book_country = country_collection.get_by_id(country_id)
+            if book_country.books is None:
+                book_country.books = list()
             # end if
-        else:
-            print(u"Warning author {} as country -1".format(author.name))
-            # Get author's first book
-            first_book = book_collection.get_book_by_id(author.books[0])
 
-            # Load country
-            country = country_collection.get_by_id(first_book.country)
-
-            # Set author's country
-            print(u"Author {} country set to {}".format(author.name, country.name))
-            author.country = country.id
-
-            # Add if not present
-            if author.id not in country.authors:
-                print(u"Adding {} to country {}".format(author.name, country.name))
-                country.authors.append(author.id)
+            # Add book to country
+            if book.id not in book_country.books:
+                book_country.books.append(book.id)
             # end if
-        # end if
+        # end for
     # end for
 
     # Save collections
