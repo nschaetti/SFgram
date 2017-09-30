@@ -15,6 +15,7 @@ class Country(object):
     name = ""
     movies = list()
     authors = list()
+    books = list()
 
     # Constructor
     def __init__(self, country_name):
@@ -24,6 +25,7 @@ class Country(object):
         self.name = country_name
         self.authors = list()
         self.movies = list()
+        self.books = list()
     # end __init__
 
     ############################################

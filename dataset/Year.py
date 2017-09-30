@@ -13,9 +13,7 @@ class Year(object):
     # Fields
     year = -1
     books = list()
-    n_books = 0
     movies = list()
-    n_movies = 0
 
     # Constructor
     def __init__(self, year):

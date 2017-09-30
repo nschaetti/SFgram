@@ -22,6 +22,7 @@ class Book(object):
     content_available = False
     content_tokens = 0
     copyright = ""
+    countries = list()
     cover_art = ""
     cover_art_url = ""
     cover_artist = ""
@@ -60,7 +61,7 @@ class Book(object):
         self.title = title
         self.author_name = author_name
         self.authors = list()
-        self.country = list()
+        self.countries = list()
         self.genres = list()
         self.images = list()
         self.images_urls = list()
