@@ -91,6 +91,9 @@ class YearCollection(object):
         :param dataset_directory:
         :return:
         """
+        # Order by year
+        self._order_by_year()
+
         # Save books
         self._save_dict(self._years, dataset_directory, "years.p")
     # end save
@@ -98,6 +101,15 @@ class YearCollection(object):
     ####################################################
     # Static
     ####################################################
+
+    # Order by year
+    def _order_by_year(self):
+        """
+        Order the collection by year
+        :return:
+        """
+        # To sort the list in place...
+        self._years.sort(key=lambda x: x.year, reverse=True)
 
     # Save variable
     def _save_dict(self, d, dataset_directory, filename):
