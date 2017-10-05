@@ -42,7 +42,7 @@ if __name__ == "__main__":
     year_minus_1 = year_collection.get_year(args.year)
 
     # Target years
-    target_years = year_minus_1.books
+    target_years = set(year_minus_1.books)
 
     # For each books
     for book_id in target_years:
@@ -73,6 +73,14 @@ if __name__ == "__main__":
         if book.id not in new_year_obj.books:
             new_year_obj.books.append(book.id)
         # end if
+
+        # No duplicates
+        year_minus_1.books = list(set(year_minus_1.books))
+        new_year_obj.books = list(set(new_year_obj.books))
+
+        # Sort
+        year_minus_1.books.sort()
+        new_year_obj.books.sort()
 
         # Save
         book_collection.save(dataset.get_dataset_directory())
