@@ -244,9 +244,83 @@ class WikipediaBookInformation(object):
         return False
     # end check_summary
 
+    # Get book information from url
+    @staticmethod
+    def get_book_information_from_url(title, author, url):
+        """
+        Get book information from URL
+        :param title:
+        :param author:
+        :param url:
+        :return:
+        """
+        # Info
+        info = {}
+
+        # Searches
+        searches = [title, title + u" " + author, title + u" novel", title + u" short story"]
+
+        # Try each searches
+        for title_search in searches:
+            # Search
+            search = wikipedia.search(title_search)
+
+            # For each response
+            for page_title in searches:
+                # Get page
+                try:
+                    page = wikipedia.page(page_title)
+                except wikipedia.exceptions.DisambiguationError as e:
+                    continue
+                except wikipedia.exceptions.PageError as e:
+                    continue
+                # end try
+
+                # It is the page
+                if page.url == url:
+                    # Get information in the box
+                    wiki_info = WikipediaBookInformation.get_infobox(page.html())
+
+                    # Original title
+                    info['original_title'] = page.original_title
+
+                    # Image
+                    info['images'] = WikipediaBookInformation.filter_wikipedia_images(page.images)
+
+                    # Find plot
+                    for section in ("Plot", "Plot summary", "Synopsis"):
+                        if page.section(section) is not None:
+                            info['plot'] = unicode(page.section(section))
+                            # end if
+                    # end for
+
+                    # Summary
+                    info['summary'] = page.summary
+
+                    # Cover artist
+                    if u'Cover\u00a0artist' in wiki_info:
+                        info['cover_artist'] = wiki_info[u'Cover\u00a0artist']
+                    # end if
+
+                    # Publisher
+                    if u'Publisher' in wiki_info:
+                        info['publisher'] = wiki_info[u'Publisher']
+                    # end if
+
+                    # Published in
+                    info['published_in'] = wiki_info[u'Published in'] \
+                        if u'Published in' in wiki_info else None
+                    break
+                # end if
+            # end for
+        # end for
+
+        return info
+    # end get_book_information_from_url
+
     # Get book information
     @staticmethod
-    def get_book_information(title, author):
+    def get_book_information(title, author, page_url=""):
         """
         Get book informations.
         :return:
