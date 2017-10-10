@@ -65,6 +65,149 @@ class GoodReadsConnector(object):
         return base_url + book_link
     # end search_book
 
+    # Search on goodreads
+    @staticmethod
+    def search(goodreads_client, query):
+        """
+        Search on Goodreads
+        :param query:
+        :return:
+        """
+        # Search books
+        ok = False
+        while not ok:
+            try:
+                success = False
+                while not success:
+                    try:
+                        books = goodreads_client.search_books(query)
+                        success = True
+                    except requests.exceptions.SSLError as e:
+                        logging.getLogger(u"SFGram").error(
+                            u"Connection error searching for {} on Goodreads : {}".format(query, e))
+                        time.sleep(60)
+                        pass
+                    # end try
+                    except requests.exceptions.ConnectionError as e:
+                        logging.getLogger(u"SFGram").error(
+                            u"Connection error searching for {} on Goodreads : {}".format(query, e))
+                        time.sleep(60)
+                        pass
+                        # end try
+                # end while
+
+                # Continue
+                ok = True
+            except goodreads.request.GoodreadsRequestException:
+                logging.getLogger(name=u"SFGram").warning(u"Error when retrieving information from Goodreads for {}"
+                                                          .format(query))
+                # end if
+                time.sleep(10)
+                pass
+            except TypeError:
+                logging.getLogger(name=u"SFGram").warning(u"Book \"{}\" not found on GoodReads".format(query))
+                return []
+                # end try
+        # end while
+
+        return books
+    # end search
+
+
+    # Get book's info
+    @staticmethod
+    def get_book_info_url(title, author, url):
+        """
+        Get book's info
+        :param title:
+        :param url:
+        :return:
+        """
+        # Result
+        info = {}
+
+        # Goodreads client
+        goodreads_client = client.GoodreadsClient("3H4jhs695dsDscTWMjKmw",
+                                                  "IGxF8r6Gg4FWPCQlPBpwkmQU2nZJWa6ZXCDRW7FtT5c")
+
+        # Empty genre list
+        info['classes'] = list()
+
+        # Search books
+        title_books = GoodReadsConnector.search(goodreads_client, title)
+        author_books = GoodReadsConnector.search(goodreads_client, author)
+        both_books = GoodReadsConnector.search(goodreads_client, title + " " + author)
+
+        # No ebooks
+        book = None
+        for c in [title_books, author_books, both_books]:
+            for b in c:
+                if b.link == url:
+                    book = b
+                    break
+                # end if
+            # end for
+            if book is not None:
+                break
+            # end if
+        # end for
+
+        # Not found
+        if book is None:
+            return None
+        # end if
+
+        # Get informations
+        info['isbn13'] = book.isbn13
+        info['isbn'] = book.isbn
+        info['similar_books'] = list()
+        info['description'] = book.description
+
+        # Book rating
+        if book.average_rating is not None:
+            info['average_rating'] = float(book.average_rating)
+        # end if
+
+        # Language code
+        info['language_code'] = book.language_code
+
+        # Book rating
+        if book.ratings_count is not None:
+            info['rating_count'] = int(book.ratings_count)
+        # end if
+
+        # Number of pages
+        if book.num_pages is not None:
+            info['pages'] = int(book.num_pages)
+        # end if
+
+        # Book format
+        info['format'] = book.format
+
+        # Similar books
+        try:
+            for b in book.similar_books:
+                info['similar_books'].append(b.title)
+            # end for
+        except KeyError:
+            info['similar_books'] = list()
+        # end try
+
+        # Genres
+        try:
+            for shelf in book.popular_shelves:
+                info['classes'].append(shelf.name)
+            # end
+        except TypeError:
+            info['classes'] = list()
+        # end try
+
+        # Found
+        logging.getLogger(name=u"SFGram").info(u"Goodreads page found at {}".format(book.link))
+
+        return info
+    # end get_book_info_url
+
     # Get book's info
     @staticmethod
     def get_book_info(title):
