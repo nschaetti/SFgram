@@ -143,6 +143,89 @@ class WikipediaBookInformation(object):
         return False
     # end check_summary
 
+    # Get author information from URL
+    @staticmethod
+    def get_author_information_from_url(author_name, url):
+        """
+        Get author information from URL
+        :param author_name:
+        :param url:
+        :return:
+        """
+        # Info
+        info = {}
+
+        # Search for the book on wikipedia
+        logging.getLogger(u"SFGram").info(u"Searching Wikipedia page for {}".format(author_name))
+        searches = wikipedia.search(author_name)
+
+        try:
+            # For each response
+            for page_title in searches:
+                if "disambiguation" not in page_title:
+                    try:
+                        # Get page
+                        try:
+                            page = wikipedia.page(page_title)
+                        except wikipedia.exceptions.DisambiguationError as e:
+                            continue
+                        except wikipedia.exceptions.PageError as e:
+                            continue
+                        # end try
+
+                        # It the page we re looging for
+                        if page.url == url:
+                            if WikipediaBookInformation.check_author_summary(page.summary):
+                                # Get information in the box
+                                wiki_info = WikipediaBookInformation.get_infobox(page.html())
+
+                                # Born
+                                if "born" in wiki_info:
+                                    info['born'] = WikipediaBookInformation.extract_date(wiki_info['born'])
+                                # end if
+
+                                # Died
+                                if "died" in wiki_info:
+                                    info['died'] = WikipediaBookInformation.extract_date(wiki_info['died'])
+                                # end if
+
+                                # Death
+                                if "death" in wiki_info:
+                                    info['died'] = WikipediaBookInformation.extract_date(wiki_info['death'])
+                                # end if
+
+                                # Summary
+                                info['summary'] = page.summary
+
+                                # Find biography
+                                for section in ("Life", "Early life", "Career", "Personal life", "Death", "Biography"):
+                                    if page.section(section) is not None:
+                                        if 'bio' not in info:
+                                            info['bio'] = unicode(page.section(section))
+                                        else:
+                                            info['bio'] += u" " + unicode(page.section(section))
+                                        # end if
+                                    # end if
+                                # end for
+
+                                # End
+                                logging.getLogger(u"SFGram").info(u"Wikipedia page found at {}".format(page.url))
+                                break
+                            # end if
+                        # end if
+                    except wikipedia.exceptions.DisambiguationError:
+                        logging.getLogger(u"SFGram").warning(u"Disambiguation error for page {}".format(page_title))
+                        pass
+                    # end try
+                # end if
+            # end for
+        except wikipedia.exceptions.PageError:
+            logging.getLogger(u"SFGram").error(u"Cannot find Wikipedia page for {}".format(author_name))
+        # end try
+
+        return info
+    # end get_author_information
+
     # Get author information
     @staticmethod
     def get_author_information(author_name):
