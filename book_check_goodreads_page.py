@@ -57,7 +57,7 @@ if __name__ == "__main__":
             # Delete format
             try:
                 delattr(book, 'format')
-            except KeyError:
+            except (KeyError, AttributeError):
                 pass
             # end try
 
@@ -93,7 +93,11 @@ if __name__ == "__main__":
                         try:
                             setattr(book, attr, goodreads_info[attr])
                         except KeyError:
-                            delattr(book, attr)
+                            try:
+                                delattr(book, attr)
+                            except AttributeError:
+                                pass
+                            # end try
                         # end try
                     # end for
                 else:
