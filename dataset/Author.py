@@ -13,8 +13,8 @@ class Author(object):
 
     # Fields
     id = 0
-    birth_date = None
-    death_date = None
+    born = None
+    died = None
     name = ""
     books = list()
     bio = ""
