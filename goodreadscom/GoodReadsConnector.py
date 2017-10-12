@@ -162,6 +162,9 @@ class GoodReadsConnector(object):
         info['isbn'] = book.isbn
         info['similar_books'] = list()
         info['description'] = book.description
+        info['cover'] = book.image_url
+        info['small_image'] = book.small_image_url
+        info['large_cover'] = book.image_url.replace('m/', 'l/').replace('.col/', '.com/')
 
         # Book rating
         if book.average_rating is not None:
