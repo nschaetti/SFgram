@@ -55,6 +55,12 @@ if __name__ == "__main__":
                         book.cover = goodreads_info['small_image']
                     # end if
                 # end if
+
+                # Save
+                if book.id % 10 == 0:
+                    print(u"Saving...")
+                    book_collection.save(dataset.get_dataset_directory())
+                # end if
             # end if
         # end if
     # end for
