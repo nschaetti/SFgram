@@ -26,6 +26,7 @@ if __name__ == "__main__":
     # Argument
     parser.add_argument("--dataset-dir", type=str, help="Dataset directory", required=True)
     parser.add_argument("--start", type=int, help="Starting book index", default=0)
+    parser.add_argument("--end", type=int, help="Starting book index", default=100000000)
     args = parser.parse_args()
 
     # Dataset
@@ -37,7 +38,7 @@ if __name__ == "__main__":
 
     # For each book
     for book in book_collection.get_books():
-        if book.id >= args.start:
+        if book.id >= args.start and book.id <= args.end:
             if book.goodreads['found']:
                 # Log
                 print(u"Updating images for book {} ({}) with ID {}".format(book.title, book.author_name, book.id))
@@ -60,6 +61,10 @@ if __name__ == "__main__":
                 if book.id % 10 == 0:
                     print(u"Saving...")
                     book_collection.save(dataset.get_dataset_directory())
+                # end if
+            else:
+                if hasattr(book, 'cover'):
+                    delattr(book, 'cover')
                 # end if
             # end if
         # end if
