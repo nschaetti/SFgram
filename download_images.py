@@ -35,8 +35,6 @@ if __name__ == "__main__":
 
     # Load or create collections
     book_collection = ds.BookCollection.create(args.dataset_dir)
-    country_collection = ds.CountryCollection.create(args.dataset_dir)
-    year_collection = ds.YearCollection.create(args.dataset_dir)
 
     # For each book
     for book in book_collection.get_books():
@@ -44,49 +42,31 @@ if __name__ == "__main__":
             # Log
             print(u"Downloading images for book {} ({}) with ID {}".format(book.title, book.author_name, book.id))
 
-            # Wikipedia & Goodreads information
-            wikipedia_info = wp.WikipediaBookInformation.get_book_information_from_url(book.title, book.author_name, book.wikipedia['url'])
-            goodreads_info = gr.GoodReadsConnector.get_book_info_url(book.title, book.author_name, book.goodreads['url'])
-            if book.id == 7:
-                print(wikipedia_info)
-                exit()
-            # end if
             # Save gutenberg images
-            for image_url in book.images_urls:
-                (data, name) = tools.Tools().download_http_file(image_url)
-                book_collection.save_image(dataset.get_dataset_directory(), book.id, data, name)
-            # end for
-
-            # Save gutenberg images
-            if wikipedia_info['wikipedia']['found']:
-                for (data, name) in wikipedia_info['images']:
-                    book_collection.save_image(dataset.get_dataset_directory(), book.id, data,
-                                               name)
+            if hasattr(book, 'images_urls') and book.images_urls is not None:
+                for image_url in book.images_urls:
+                    print(u"\tDownloading {}".format(image_url))
+                    (data, name) = tools.Tools().download_http_file(image_url)
+                    book_collection.save_image(dataset.get_dataset_directory(), book.id, data, name)
                 # end for
             # end if
 
-            # Save cover (from wikipedia)
-            if 'cover' in book_informations.keys():
-                book_collection.save_cover(dataset.get_dataset_directory(), book.id,
-                                           book_informations['cover'][0], book_informations['cover'][1])
+            # Save gutenberg images
+            if hasattr(book, 'images') and book.images is not None:
+                for image_url in book.images:
+                    print(u"\tDownloading {}".format(image_url))
+                    (data, name) = tools.Tools().download_http_file(image_url)
+                    book_collection.save_image(dataset.get_dataset_directory(), book.id, data, name)
+                # end if
             # end if
 
-            # Save cover (from goodreads)
-            if 'cover' in goodreads_info.keys():
-                book_collection.save_cover(dataset.get_dataset_directory(), book.id,
-                                           goodreads_info['cover'][0], goodreads_info['cover'][1])
-            # end if
-
-            # Save small image
-            if 'small_image' in goodreads_info.keys():
-                book_collection.save_image(dataset.get_dataset_directory(), book.id,
-                                           goodreads_info['small_image'][0], goodreads_info['small_image'][1])
-            # end if
-
-            # Save content
-            if book.content_available:
-                book_collection.save_content(dataset.get_dataset_directory(), book.id,
-                                             book_informations['content'])
+            # Save cover
+            if hasattr(book, 'cover') and book.cover is not None:
+                if book.cover != "":
+                    print(u"\tDownloading {}".format(book.cover))
+                    (data, name) = tools.Tools().download_http_file(book.cover)
+                    book_collection.save_cover(dataset.get_dataset_directory(), book.id, data, name)
+                # end if
             # end if
 
             # Space
