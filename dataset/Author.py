@@ -22,6 +22,7 @@ class Author(object):
     wikipedia = {'ambiguation': False, 'url': u"", 'found': False}
     n_books = 0
     countries = list()
+    gender = ""
 
     # Constructor
     def __init__(self, name):
@@ -31,6 +32,7 @@ class Author(object):
         self.name = name
         self.books = list()
         self.countries = list()
+        self.gender = ""
     # end __init__
 
     ############################################
