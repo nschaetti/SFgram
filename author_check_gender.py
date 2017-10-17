@@ -47,7 +47,7 @@ if __name__ == "__main__":
             # end if
 
             # Ask
-            print(u"Gender? (empty=unknown, m, w) ")
+            print(u"Gender? (empty=unknown, m, f) ")
             page_answer = raw_input(u"Gender? ").strip().lower()
 
             # Change gender
