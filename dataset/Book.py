@@ -67,6 +67,7 @@ class Book(object):
         self.images = list()
         self.images_urls = list()
         self.similar_books = list()
+        self.cover = ""
     # end __init__
 
     ############################################
