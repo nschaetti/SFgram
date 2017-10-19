@@ -113,9 +113,11 @@ if __name__ == "__main__":
     for item in collection:
         # Get informations
         info = ia.ArchiveOrgBookInformation.get_item_information(item)
+
         try:
             isfdb_info = isfdb.ISFDbBookInformation.get_book_information(info['isfdb_link'])
         except KeyError:
+            print(u"Error retrieving ISFDB info")
             continue
         # end try
 
