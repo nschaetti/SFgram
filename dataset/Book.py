@@ -19,6 +19,7 @@ class Book(object):
     category = ""
     cleaned = False
     content = ""
+    contents = list()
     content_available = False
     content_tokens = 0
     copyright = ""
@@ -63,6 +64,7 @@ class Book(object):
         self.author_name = author_name
         self.authors = list()
         self.countries = list()
+        self.contents = list()
         self.genres = list()
         self.images = list()
         self.images_urls = list()
