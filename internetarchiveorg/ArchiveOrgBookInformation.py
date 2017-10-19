@@ -72,13 +72,19 @@ class ArchiveOrgBookInformation(object):
         # Parse HTML
         soup = BeautifulSoup.BeautifulSoup(html, "lxml")
 
+        # Contents
+        result['contents'] = list()
+
         # Get author
         result['authors'] = list()
         descript = soup.find('div', attrs={'id': u'descript'})
         try:
             for li in descript.find_all('li'):
                 try:
-                    result['authors'].append(li.text.split(u"by")[1].strip())
+                    content_title = li.text.split(u"by")[0].strip()
+                    author_name = li.text.split(u"by")[1].strip()
+                    result['authors'].append(author_name)
+                    result['contents'].append({'name': content_title, 'author': author_name})
                 except IndexError:
                     pass
                 # end try
@@ -119,8 +125,9 @@ class ArchiveOrgBookInformation(object):
             text_url = text_url.format(item.identifier, item.identifier)
             html = urlopen(text_url).read()
             soup = BeautifulSoup.BeautifulSoup(html, "lxml")
-            text = soup.find('div', attrs={'class': u"container"}).find('pre')\
-                .text.replace(u"\n", u". ").replace(u"..", u".").replace(u"  ", u" ").strip()
+            #text = soup.find('div', attrs={'class': u"container"}).find('pre')\
+            #    .text.replace(u"\n", u". ").replace(u"..", u".").replace(u"  ", u" ").strip()
+            text = soup.find('div', attrs={'class': u"container"}).find('pre').text.strip()
             for i in range(10):
                 text = text.replace(u". . ", u". ")
             # end for
