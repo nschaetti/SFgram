@@ -1,3 +1,3 @@
 
 # Imports
-from Tools import Tools
+from Tools import Tools, DownloadErrorException
