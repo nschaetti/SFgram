@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/SFgram.iml" filepath="$PROJECT_DIR$/.idea/SFgram.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../sfgram-doccano/.idea/sfgram-doccano.iml" filepath="$PROJECT_DIR$/../sfgram-doccano/.idea/sfgram-doccano.iml" />
     </modules>
   </component>
 </project>
